@@ -1,21 +1,4 @@
-flightNum,departurePlace,arrivalPlace,date,hour,duration
-1001,Istanbul,London,2026-01-10,14:30,PT3H50M
-1002,London,New York,2026-01-10,09:00,PT8H00M
-1003,Istanbul,Berlin,2026-01-11,18:45,PT3H15M
-1004,Ankara,Istanbul,2026-01-11,07:00,PT1H10M
-1005,Izmir,Istanbul,2026-01-12,06:30,PT1H00M
-1006,Istanbul,Paris,2026-01-12,10:15,PT3H40M
-1007,Istanbul,Tokyo,2026-01-13,01:20,PT11H30M
-1008,Dubai,Istanbul,2026-01-13,15:00,PT4H45M
-1009,Istanbul,Antalya,2026-01-14,08:00,PT1H15M
-1010,Rome,Istanbul,2026-01-14,12:30,PT2H35M
-1011,Istanbul,Amsterdam,2026-01-15,16:00,PT3H30M
-1012,Istanbul,Baku,2026-01-15,19:00,PT2H45M
-1013,Moscow,Istanbul,2026-01-16,11:45,PT3H55M
-1014,Istanbul,Trabzon,2026-01-16,05:45,PT1H40M
-1015,Istanbul,Madrid,2026-01-17,13:10,PT4H20M
-1016,Athens,Istanbul,2026-01-17,09:20,PT1H25M
-1017,Istanbul,Vienna,2026-01-18,17:30,PT2H20M
-1018,Istanbul,Seoul,2026-01-18,23:55,PT10H15M
-1019,Doha,Istanbul,2026-01-19,04:00,PT4H10M
-1020,Istanbul,Chicago,2026-01-19,14:00,PT11H00M
+flightNum,departure,arrival,date,time,duration,planeId
+1001,Istanbul,Ankara,2026-01-09,14:30,PT1H15M,1
+1002,Istanbul,Izmir,2026-01-10,09:00,PT1H05M,2
+1003,Ankara,Berlin,2026-01-12,22:15,PT3H45M,3

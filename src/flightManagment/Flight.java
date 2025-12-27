@@ -3,6 +3,9 @@ import java.time.*;
 import service_management.FileOp;
 import service_management.FlightManager;
 import java.util.*;
+
+import reservation_ticketing.Ticket;
+
 import java.io.*;
 public class Flight extends FlightManager {
 	private int flightNum;
@@ -11,19 +14,32 @@ public class Flight extends FlightManager {
 	private LocalDate date;
 	private LocalTime hour; // decimal cant be more than 0.59
 	private Duration duration; // decimal cant be more than 0.59 // brings back duration
-	
+	private Plane plane;
+	private Map<Integer, Ticket> ticketList;
 	//LocalTime time = LocalTime.of(14, 30);
 	//LocalDateTime dt = LocalDateTime.of(2026, 1, 9, 14, 30);
 
 
-	public Flight(int flightNum,String departurePlace,String arrivalPlace,LocalDate date,LocalTime hour,Duration duration) {
+	public Flight(int flightNum,String departurePlace,String arrivalPlace,LocalDate date,LocalTime hour,Duration duration,Plane plane) {
 		this.flightNum = flightNum;
 		this.departurePlace = departurePlace;
 		this.arrivalPlace = arrivalPlace;
 		this.date = date;
 		this.hour = hour;
 		this.duration = duration;
+		this.plane = plane;
+		ticketList = new HashMap<>();
 		
+	}
+	public Map<Integer, Ticket> getTicketList(){
+	    return Collections.unmodifiableMap(ticketList); // passing a controlled map instead of raw map safety reasons not needed
+
+	}
+	public Plane getPlane() {
+		return plane;
+	}
+	public void setPlane(Plane plane) {
+		this.plane = plane;
 	}
 	static public Flight getFlightWithId(int flightId) throws FileNotFoundException {
 

@@ -5,8 +5,8 @@ public class route extends Flight{
 	private LocalDateTime arrival;
 	
 	public route(int flightNum, String departurePlace, String arrivalPlace, LocalDate date, LocalTime hour,
-			Duration duration) {
-		super(flightNum, departurePlace, arrivalPlace, date, hour, duration);
+			Duration duration,Plane plane) {
+		super(flightNum, departurePlace, arrivalPlace, date, hour, duration,plane);
 		this.departure = LocalDateTime.of(date, hour);
 		this.arrival = departure.plus(duration);
 	}

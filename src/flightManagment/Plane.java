@@ -1,22 +1,47 @@
 package flightManagment;
 
 import java.util.Arrays;
-
+import java.util.HashMap;
+import java.util.Map;
+//fix the issue of seats needed to be sorted or not
+//as well as fixing the issue of having them filled in or not
+//if not filled in we need to check according to reservedStatus
 public class Plane {
 	private int planeID;
 	private String planeModel;
 	private int capacity;
-	private String seatM[][];
-	private int seatNum;
+	private Seat seatM[][];
+	private int colAmount;
+	private Map<String,Seat> seatMap = new HashMap<>();
 	
 		public Plane(int planeId,String planeModel,int capacity,int seatAmount) {
 			this.planeID = planeId;
 			this.planeModel = planeModel;
 			this.capacity = capacity;
-			this.seatM = new String[seatAmount][capacity/seatAmount];
-			this.seatNum= seatAmount;
+			int col = capacity/seatAmount;
+			this.seatM = new Seat[seatAmount][col];
+			
+			initializeSeats(seatAmount,col);
+			this.colAmount= seatAmount;
 			
 		}
+		private void initializeSeats(int rows, int cols) {
+		    for (int i = 0; i < rows; i++) {
+		        char rowLetter = (char) ('A' + i);
+		        for (int j = 0; j < cols; j++) {
+		            Seat s = new Seat(rowLetter + String.valueOf(j + 1));
+		            //System.out.println(rowLetter + String.valueOf(j + 1));
+		            seatM[i][j] = s;
+		            seatMap.put(s.getSeatNum(), s);
+		        }
+		    }
+		}
+
+
+		    public Seat getSeatByNumber(String seatNum) {
+		        return seatMap.get(seatNum);
+		    }
+		
 
 		public int getPlaneID() {
 			return planeID;
@@ -42,14 +67,16 @@ public class Plane {
 			this.capacity = capacity;
 		}
 
-		public String[][] getSeatM() {
+		public Seat[][] getSeatM() {
 			return seatM;
 		}
 
-		public void setSeatM(String[][] seatM) {
+		public void setSeatM(Seat[][] seatM) {
 			this.seatM = seatM;
 		}
-		
+		public int getColAmount() {
+			return colAmount;
+		}
 
 		@Override
 		public String toString() {
@@ -60,7 +87,8 @@ public class Plane {
 		    return getPlaneID() + "," +
 		           getPlaneModel() + "," +
 		           getCapacity() + "," +
-		           this.seatNum;
+		           this.colAmount;
+		           //this.seatNum;
 		}
 
 		

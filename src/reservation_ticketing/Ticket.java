@@ -1,5 +1,5 @@
 package reservation_ticketing;
-
+import flightManagment.Seat;
 public class Ticket {
 	private int ticketId;
 	private Reservation reservation;
@@ -21,13 +21,13 @@ public class Ticket {
 			this.price = price;
 			this.baggageAllowance = baggageAllowance;
 		}
-		
+		/*
 		public Ticket(int ticketId,String reservationCode,double price,int baggageAllowance) {
 			this.ticketId = ticketId;
 			this.reservationCode = reservationCode;
 			this.price = price;
 			this.baggageAllowance = baggageAllowance;
-		}
+		}*/
 		
 		
 

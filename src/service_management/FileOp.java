@@ -1,5 +1,6 @@
 package service_management;
 import java.util.*;
+import flightManagment.Seat;
 import java.io.*;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -13,79 +14,202 @@ import reservation_ticketing.Ticket;
 @SuppressWarnings("unused")
 
 public class FileOp {
-
-    private static Scanner scanner;
-
-    public FileOp(String FileName) throws FileNotFoundException {
-        //this.FileName = FileName;
-        File file = new File(FileName);
-        scanner = new Scanner(file);
+    // Helper to detect integers
+    private static boolean isInteger(String s) {
+        if (s == null) return false;
+        s = s.trim();
+        if (s.isEmpty()) return false;
+        try {
+            Integer.parseInt(s);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
-    // This Reads The data From The file // chat changed and added a scanner passing
-     ArrayList<Flight> GetFlightData() {
+    public static Map<Integer, Flight> getFlightData(String fileName,Map<Integer, Plane> planes)
+            throws FileNotFoundException {
 
-        ArrayList<Flight> flights = new ArrayList<>();
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            String[] data = line.split(",");
-            Flight tmp = new Flight(Integer.parseInt(data[0]), data[1], data[2],LocalDate.parse(data[3]),LocalTime.parse(data[4]),Duration.parse(data[5]));
-            flights.add(tmp);
+        Map<Integer, Flight> flights = new HashMap<>();
+        try (Scanner sc = new Scanner(new File(fileName))) {
+
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine().trim();
+                if (line.isEmpty()) continue;
+                String[] d = line.split(",");
+                // Expect first column to be numeric flight number; skip headers/invalid rows
+                if (d.length < 7 || !isInteger(d[0]) || !isInteger(d[6])) {
+                    System.out.println("Skipping invalid/heading flight row: " + line);
+                    continue;
+                }
+                try {
+                    Flight f = new Flight(
+                            Integer.parseInt(d[0]),
+                            d[1],
+                            d[2],
+                            LocalDate.parse(d[3]),
+                            LocalTime.parse(d[4]),
+                            Duration.parse(d[5]),planes.get(Integer.parseInt(d[6])));
+
+                    flights.put(f.getFlightNum(), f);
+                } catch (Exception e) {
+                    System.out.println("Error parsing flight row, skipping: " + line + " -> " + e.getMessage());
+                }
+            }
         }
         return flights;
     }
-    //chat solution might get removed
-   
 
-    
-    ArrayList<Plane> GetPlaneData() {
+    public static Map<Integer, Passenger> getPassengerData(String fileName)
+            throws FileNotFoundException {
 
-        ArrayList<Plane> planes = new ArrayList<>();
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            String[] data = line.split(",");
-            Plane tmp = new Plane(Integer.parseInt(data[0]), data[1], Integer.parseInt(data[2]),Integer.parseInt(data[3]));
-            planes.add(tmp);
+        Map<Integer, Passenger> passengers = new HashMap<>();
+        try (Scanner sc = new Scanner(new File(fileName))) {
+
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine().trim();
+                if (line.isEmpty()) continue;
+                String[] d = line.split(",");
+                // Expect first column passenger id numeric
+                if (d.length < 4 || !isInteger(d[0])) {
+                    System.out.println("Skipping invalid/heading passenger row: " + line);
+                    continue;
+                }
+
+                try {
+                    Passenger p = new Passenger(
+                            Integer.parseInt(d[0]),
+                            d[1],
+                            d[2],
+                            Integer.parseInt(d[3])
+                    );
+
+                    passengers.put(p.getPassengerId(), p);
+                } catch (Exception e) {
+                    System.out.println("Error parsing passenger row, skipping: " + line + " -> " + e.getMessage());
+                }
+            }
+        }
+        return passengers;
+    }
+
+    public static Map<Integer, Plane> getPlaneData(String fileName)
+            throws FileNotFoundException {
+
+        Map<Integer, Plane> planes = new HashMap<>();
+
+        try (Scanner sc = new Scanner(new File(fileName))) {
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine().trim();
+                if (line.isEmpty()) continue;
+                String[] d = line.split(",");
+                // Expect first column plane id numeric
+                if (d.length < 4 || !isInteger(d[0])) {
+                    System.out.println("Skipping invalid/heading plane row: " + line);
+                    continue;
+                }
+
+                try {
+                    Plane plane = new Plane(
+                            Integer.parseInt(d[0]), // planeID
+                            d[1],                    // model
+                            Integer.parseInt(d[2]), // capacity
+                            Integer.parseInt(d[3])  // row count
+                    );
+
+                    planes.put(plane.getPlaneID(), plane);
+                } catch (Exception e) {
+                    System.out.println("Error parsing plane row, skipping: " + line + " -> " + e.getMessage());
+                }
+            }
         }
         return planes;
     }
-    
-    ArrayList<Passenger> getPassengerData() {
 
-        ArrayList<Passenger> ps = new ArrayList<>();
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            String[] data = line.split(",");
-            Passenger tmp = new Passenger(Integer.parseInt(data[0]), data[1], data[2],Integer.parseInt(data[3]));
-            ps.add(tmp);
-        }
-        return ps;
-    }
-    
-    
-    ArrayList<Reservation> GetReservationData() {
+    public static Map<String, Reservation> getReservationData(
+            String fileName,
+            Map<Integer, Flight> flights,
+            Map<Integer, Passenger> passengers)
+            throws FileNotFoundException {
 
-        ArrayList<Reservation> rs = new ArrayList<>();
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            String[] data = line.split(",");
-            Reservation tmp = new Reservation(data[0],Integer.parseInt(data[1]), Integer.parseInt(data[2]),data[3],LocalDate.parse(data[4]));
-            rs.add(tmp);
-        }
-        return rs;
-    }
-    ArrayList<Ticket> getTicketData() {
+        Map<String, Reservation> reservations = new HashMap<>();
 
-        ArrayList<Ticket> tk = new ArrayList<>();
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            String[] data = line.split(",");
-            Ticket tmp = new Ticket(Integer.parseInt(data[0]), data[1], Double.parseDouble(data[2]),Integer.parseInt(data[3]));
-            tk.add(tmp);
+        try (Scanner sc = new Scanner(new File(fileName))) {
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine().trim();
+                if (line.isEmpty()) continue;
+                String[] d = line.split(",");
+                // Expect at least 5 columns and flight/passenger ids to be numeric
+                if (d.length < 5 || !isInteger(d[1]) || !isInteger(d[2])) {
+                    System.out.println("Skipping invalid/heading reservation row: " + line);
+                    continue;
+                }
+
+                try {
+                    String reservationId = d[0];
+                    int flightNum = Integer.parseInt(d[1]);
+                    int passengerId = Integer.parseInt(d[2]);
+                    Flight flight = flights.get(flightNum);
+                    String seatNum = d[3];
+                    Passenger passenger = passengers.get(passengerId);
+
+                    if (flight == null || passenger == null || flight.getPlane() == null) {
+                        System.out.println("Invalid reservation row: " + Arrays.toString(d));
+                        continue;
+                    }
+                    Seat seat = flight.getPlane().getSeatByNumber(seatNum);
+                    if (seat == null) {
+                        System.out.println("Seat not found: " + seatNum);
+                        continue;
+                    }
+                    if (seat.isReservedStatus()) {
+                        System.out.println("Seat already reserved: " + seatNum);
+                        continue;
+                    }
+                    seat.setReservedStatus(true);
+                    Reservation tmp = new Reservation(d[0],flight,passenger,seat,LocalDate.parse(d[4]));
+                    reservations.put(reservationId, tmp);
+                } catch (Exception e) {
+                    System.out.println("Error parsing reservation row, skipping: " + line + " -> " + e.getMessage());
+                }
+            }
         }
-        return tk;
+        return reservations;
     }
-    
+
+    public static Map<Integer, Ticket> getTicketData(String fileName,Map<String,Reservation> reservations,Map<Integer,Flight> flights)
+            throws FileNotFoundException {
+
+        Map<Integer, Ticket> tickets = new HashMap<>();
+        try (Scanner sc = new Scanner(new File(fileName))) {
+
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine().trim();
+                if (line.isEmpty()) continue;
+                String[] d = line.split(",");
+                // Expect ticket id numeric and at least 4 columns
+                if (d.length < 4 || !isInteger(d[0])) {
+                    System.out.println("Skipping invalid/heading ticket row: " + line);
+                    continue;
+                }
+                try {
+                    Reservation rs = reservations.get(d[1]);
+                    Ticket t = new Ticket(
+                            Integer.parseInt(d[0]),
+                            rs,
+                            Double.parseDouble(d[2]),
+                            Integer.parseInt(d[3])
+                    );
+
+                    tickets.put(t.getTicketId(), t);
+                } catch (Exception e) {
+                    System.out.println("Error parsing ticket row, skipping: " + line + " -> " + e.getMessage());
+                }
+            }
+        }
+        return tickets;
+    }
+
     static <T> void SaveFile(String fileName, ArrayList<T> list) {
         try (FileWriter writer = new FileWriter(fileName)) {
             for (T item : list) {
@@ -95,23 +219,5 @@ public class FileOp {
             System.out.println("Error writing to file!");
         }
     }
-
-    
-
-    /*
-
-    static void SaveFile(String FileName, ArrayList<Flight> flights){
-
-        try {
-            FileWriter writer = new FileWriter(FileName);
-            for (Flight i : flights) {
-                writer.append(i.getFlightNum() + "," + i.getDeparturePlace() + "," + i.getArrivalPlace() + ","+ i.getDate()+ "," + i.getHour()+","+i.getDuration()+ "\n");
-            }
-            writer.close();
-        } catch (IOException e) {
-            System.out.println("Error writing To the File !!!!");
-        }
-    }
-    */
 
 }

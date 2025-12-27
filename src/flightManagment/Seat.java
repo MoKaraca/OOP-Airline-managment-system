@@ -18,11 +18,13 @@ public class Seat {
 	}
 
 	private String seatNum;
-	private float price;
+	private double price;
 	private boolean reservedStatus;
 	private SeatClass level;
-	
-	public Seat(String seatNum,float price,boolean reservedStatus,SeatClass level) {
+	public Seat(String seatNum) {
+		this.seatNum = seatNum;
+	}
+	public Seat(String seatNum,double price,boolean reservedStatus,SeatClass level) {
 		this.seatNum = seatNum;
 		this.price = price;
 		this.reservedStatus = reservedStatus;
@@ -37,7 +39,7 @@ public class Seat {
 		this.seatNum = seatNum;
 	}
 
-	public float getPrice() {
+	public double getPrice() {
 		return price;
 	}
 

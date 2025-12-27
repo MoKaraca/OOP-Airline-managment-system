@@ -1,21 +1,4 @@
-planeId,planeModel,capacity,seatAmount
-101,Boeing 737-800,180,30
-102,Airbus A320,150,25
-103,Boeing 777-300ER,300,50
-104,Embraer E195,120,20
-105,Boeing 737-MAX,180,30
-106,Airbus A321,200,35
-107,Boeing 787 Dreamliner,250,40
-108,Airbus A350,300,50
-109,Bombardier CRJ900,90,15
-110,Boeing 737-800,180,30
-111,Airbus A320,150,25
-112,Boeing 777-200,300,50
-113,Airbus A330,280,45
-114,Boeing 747-400,400,60
-115,Embraer E175,76,12
-116,Airbus A220,130,22
-117,Boeing 737-700,140,24
-118,Airbus A319,120,20
-119,Boeing 767-300,220,38
-120,Airbus A380,500,80
+planeId,model,capacity,rowCount
+1,Boeing 737,180,30
+2,Airbus A320,160,28
+3,Boeing 777,300,50

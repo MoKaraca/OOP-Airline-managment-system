@@ -1,4 +1,4 @@
-
+/*
 	private int planeID;
 	private String planeModel;
 	private int capacity;
@@ -86,4 +86,4 @@
 						this.price = price;
 						this.baggageAllowance = baggageAllowance;
 					}
-
+*/
