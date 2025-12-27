@@ -169,6 +169,15 @@ public class AirlineGUI extends JFrame {
                 JOptionPane.showMessageDialog(this, "Selected flight has no assigned plane.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            // loading in seats that are already reserved
+            for (Reservation r : database.reservations.values()) {
+            					if (r.getFlight() != null && r.getFlight().getFlightNum() == selectedFlight.getFlightNum()) {
+					Seat s = plane.getSeatByNumber(r.getSeat().getSeatNum());
+					if (s != null) s.setReservedStatus(true);
+				}
+            }
+            
+            
 
             String selectedSeat = showSeatSelectionDialog(plane);
             if (selectedSeat == null) {
@@ -336,7 +345,7 @@ public class AirlineGUI extends JFrame {
         admin_tfCapacity.setBounds(120, 90, 250, 25);
         planePanel.add(admin_tfCapacity);
 
-        JLabel lblManufacturer = new JLabel("Manufacturer:");
+        JLabel lblManufacturer = new JLabel("Row amount:");
         lblManufacturer.setBounds(10, 125, 100, 25);
         planePanel.add(lblManufacturer);
         admin_tfManufacturer = new JTextField();
@@ -353,12 +362,24 @@ public class AirlineGUI extends JFrame {
             String model = admin_tfModel.getText().trim();
             String capacity = admin_tfCapacity.getText().trim();
             String manufacturer = admin_tfManufacturer.getText().trim();
-
+            
+            // Create and add the new plane to the database
+            Plane plane = new Plane(Integer.parseInt(id), model, Integer.parseInt(capacity), Integer.parseInt(manufacturer));
+            database.planes.put(plane.getPlaneID(), plane);
+            FileOp.saveFile(
+                    "/Users/mo/Desktop/AirlineManagment/src/planes.csv",
+                    database.planes.values(), // Saving ALL data
+                    false,  // append = FALSE (Overwrite the file)
+                    true,   // header = TRUE (Always write header since we are creating a fresh file)
+                    "planeId,model,capacity,rows" // Corrected Header (see note below)
+                );
+            
+            // Print to console
             System.out.println("[ADMIN] Create Plane requested:");
             System.out.println("  Plane ID: " + id);
             System.out.println("  Model: " + model);
             System.out.println("  Capacity: " + capacity);
-            System.out.println("  Manufacturer: " + manufacturer);
+            System.out.println("  Row amount: " + manufacturer);
 
             // Clear fields after printing
             admin_tfPlaneId.setText("");
@@ -432,13 +453,40 @@ public class AirlineGUI extends JFrame {
         // Print entered flight data to the console when clicked and clear fields
         btnCreateFlight.addActionListener(e -> {
             String flightNum = admin_tfFlightNum.getText().trim();
+            if(database.flights.containsKey(Integer.parseInt(flightNum))) {
+				JOptionPane.showMessageDialog(this, "Flight number already exists in database.", "Input Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+            
             String from = admin_tfFrom.getText().trim();
             String to = admin_tfTo.getText().trim();
             String date = admin_tfDate.getText().trim();
             String time = admin_tfTime.getText().trim();
             String duration = admin_tfDuration.getText().trim();
             String assignedPlaneId = admin_tfPlaneAssign.getText().trim();
+            if(!database.planes.containsKey(Integer.parseInt(assignedPlaneId))) {
+            	JOptionPane.showMessageDialog(this, "Assigned Plane ID does not exist in database.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+            // Create and add the new flight to the database
+            Flight flight = new Flight(
+					Integer.parseInt(flightNum),
+					from,
+					to,
+					LocalDate.parse(date),
+					LocalTime.parse(time),
+					Duration.ofMinutes(Long.parseLong(duration)),
+					database.planes.get(Integer.parseInt(assignedPlaneId))
+			);
+            database.flights.put(flight.getFlightNum(), flight);
+            FileOp.saveFile(
+                    "/Users/mo/Desktop/AirlineManagment/src/flights.csv",
+                    database.flights.values(), // Saving ALL data
+                    false,  // append = FALSE (Overwrite the file)
+                    true,   // header = TRUE (Always write header since we are creating a fresh file)
+                    "flightNum,departure,arrival,date,time,duration,planeId" // Corrected Header (see note below)
+                );
 
+            // print to console
             System.out.println("[ADMIN] Create Flight requested:");
             System.out.println("  Flight Num: " + flightNum);
             System.out.println("  From: " + from);

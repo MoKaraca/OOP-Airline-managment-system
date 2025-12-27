@@ -1,0 +1,12 @@
+Flight [flightNum=1001, departurePlace=Istanbul, arrivalPlace=Ankara, date=2026-01-09, hour=14:30, duration=PT1H15M]
+Flight [flightNum=1002, departurePlace=Istanbul, arrivalPlace=Izmir, date=2026-01-10, hour=09:00, duration=PT1H5M]
+Flight [flightNum=1003, departurePlace=Ankara, arrivalPlace=Berlin, date=2026-01-12, hour=22:15, duration=PT3H45M]
+1001,Istanbul,Ankara,2026-01-09,14:30,PT1H15M1
+1002,Istanbul,Izmir,2026-01-10,09:00,PT1H5M2
+1003,Ankara,Berlin,2026-01-12,22:15,PT3H45M3
+1001,Istanbul,Ankara,2026-01-09,14:30,PT1H15M1
+1002,Istanbul,Izmir,2026-01-10,09:00,PT1H5M2
+1003,Ankara,Berlin,2026-01-12,22:15,PT3H45M3
+1001,Istanbul,Ankara,2026-01-09,14:30,PT1H15M1
+1002,Istanbul,Izmir,2026-01-10,09:00,PT1H5M2
+1003,Ankara,Berlin,2026-01-12,22:15,PT3H45M3

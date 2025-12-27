@@ -96,19 +96,14 @@ public class Flight extends FlightManager {
 		this.duration = duration;
 	}
 
-	@Override
-	public String toString() {
-		return "Flight [flightNum=" + flightNum + ", departurePlace=" + departurePlace + ", arrivalPlace="
-				+ arrivalPlace + ", date=" + date + ", hour=" + hour + ", duration=" + duration + "]";
-	}
 	
-	public String toFileString() {
+	public String toString() {
 	    return getFlightNum() + "," +
 	           getDeparturePlace() + "," +
 	           getArrivalPlace() + "," +
 	           getDate() + "," +
 	           getHour() + "," +
-	           getDuration();
+	           getDuration() +","+ getPlane().getPlaneID();
 	}
 
 	

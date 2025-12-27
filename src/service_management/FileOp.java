@@ -210,14 +210,29 @@ public class FileOp {
         return tickets;
     }
 
-    static <T> void SaveFile(String fileName, ArrayList<T> list) {
-        try (FileWriter writer = new FileWriter(fileName)) {
-            for (T item : list) {
-                writer.append(item.toString()).append("\n");
+    public static <T> void saveFile(String fileName, Collection<T> data, boolean append, boolean writeHeader, String header) {
+        File file = new File(fileName);
+        boolean fileExists = file.exists() && file.length() > 0;
+
+        try (FileWriter writer = new FileWriter(fileName, append)) {
+            
+            // 1. Write Header
+            // We write the header if we are creating a new file OR if we are overwriting the old one.
+            if (writeHeader && (!fileExists || !append)) {
+                writer.write(header + System.lineSeparator());
             }
+
+            // 2. Write Data
+            for (T item : data) {
+                // This relies on the class (Plane/Flight) having a proper toString() method
+                writer.write(item.toString() + System.lineSeparator());
+            }
+
         } catch (IOException e) {
-            System.out.println("Error writing to file!");
+            System.out.println("Error writing to file: " + fileName);
+            e.printStackTrace();
         }
     }
+
 
 }

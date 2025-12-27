@@ -19,7 +19,7 @@ public class Plane {
 			this.planeModel = planeModel;
 			this.capacity = capacity;
 			int col = capacity/seatAmount;
-			this.seatM = new Seat[seatAmount][col];
+			this.seatM = new Seat[seatAmount][col];			
 			
 			initializeSeats(seatAmount,col);
 			this.colAmount= seatAmount;
@@ -78,17 +78,12 @@ public class Plane {
 			return colAmount;
 		}
 
-		@Override
+		
 		public String toString() {
-			return "Plane [planeID=" + planeID + ", planeModel=" + planeModel + ", capacity=" + capacity + ", seatM="
-					+ Arrays.toString(seatM) + "]";
-		}
-		public String toFileString() {
 		    return getPlaneID() + "," +
 		           getPlaneModel() + "," +
 		           getCapacity() + "," +
 		           this.colAmount;
-		           //this.seatNum;
 		}
 
 		
