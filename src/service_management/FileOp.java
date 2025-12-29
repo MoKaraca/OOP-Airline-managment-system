@@ -167,7 +167,7 @@ public class FileOp {
                         System.out.println("Seat already reserved: " + seatNum);
                         continue;
                     }
-                    seat.setReservedStatus(true);
+                    seat.setReservedStatus(true,flight.getPlane());
                     Reservation tmp = new Reservation(d[0],flight,passenger,seat,LocalDate.parse(d[4]));
                     reservations.put(reservationId, tmp);
                 } catch (Exception e) {
@@ -195,13 +195,14 @@ public class FileOp {
                 }
                 try {
                     Reservation rs = reservations.get(d[1]);
+                    System.out.println(rs);
                     Ticket t = new Ticket(
                             Integer.parseInt(d[0]),
                             rs,
                             Double.parseDouble(d[2]),
                             Integer.parseInt(d[3])
                     );
-
+                    System.out.println(t.getReservation());
                     tickets.put(t.getTicketId(), t);
                 } catch (Exception e) {
                     System.out.println("Error parsing ticket row, skipping: " + line + " -> " + e.getMessage());

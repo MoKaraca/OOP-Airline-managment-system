@@ -51,8 +51,19 @@ public class Seat {
 		return reservedStatus;
 	}
 
-	public void setReservedStatus(boolean reservedStatus) {
-		this.reservedStatus = reservedStatus;
+	public void setReservedStatus(boolean reservedStatus,Plane plane) {
+		if(reservedStatus == true) {
+			plane.setFulledSeatsCount(plane.getFulledSeatsCount() + 1);
+			if(plane.getEmptySeatsCount() > 0) {
+				plane.setEmptySeatsCount(plane.getEmptySeatsCount() - 1);
+			}
+		}else {
+			plane.setEmptySeatsCount(plane.getEmptySeatsCount() + 1);
+			if(plane.getFulledSeatsCount() > 0) {
+				plane.setFulledSeatsCount(plane.getFulledSeatsCount() - 1);
+			}
+		}
+		
 	}
 
 	public SeatClass getLevel() {

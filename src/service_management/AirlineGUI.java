@@ -6,6 +6,7 @@ import java.awt.*;
 import flightManagment.Flight;
 import reservation_ticketing.Passenger;
 import reservation_ticketing.Reservation;
+import reservation_ticketing.Ticket;
 import java.util.Map;
 import flightManagment.Plane;
 import flightManagment.Seat;
@@ -49,6 +50,12 @@ public class AirlineGUI extends JFrame {
         flightsTableModel.setRowCount(0);
         if (database.flights != null) {
             for (Flight f : database.flights.values()) {
+
+                String seatAvailability = "N/A";
+            if (f.getPlane() != null) {
+                seatAvailability = f.getPlane().getEmptySeatsCount() + " / " + f.getPlane().getCapacity();
+            }
+
                 Object[] row = {
                     f.getFlightNum(),
                     f.getDeparturePlace(),
@@ -56,7 +63,8 @@ public class AirlineGUI extends JFrame {
                     f.getDate(),
                     f.getHour(),
                     f.getDuration(),
-                    (f.getPlane() != null) ? f.getPlane().getPlaneModel() : "N/A"
+                    (f.getPlane() != null) ? f.getPlane().getPlaneModel() : "N/A",
+                    seatAvailability
                 };
                 flightsTableModel.addRow(row);
             }
@@ -72,7 +80,7 @@ public class AirlineGUI extends JFrame {
         panel.add(header, BorderLayout.NORTH);
 
         // Table Setup
-        String[] columnNames = {"Flight Num", "From", "To", "Date", "Time", "Duration", "Plane Model"};
+        String[] columnNames = {"Flight Num", "From", "To", "Date", "Time", "Duration", "Plane Model", "Seats (Empty/Total)"};
         flightsTableModel = new DefaultTableModel(columnNames, 0);
 
         // Populate Table from HashMap
@@ -138,11 +146,34 @@ public class AirlineGUI extends JFrame {
             // Validate inputs
             long passengerId;
             double baggageWeight;
-            String name = tfName.getText().trim();
-            String surname = tfSurname.getText().trim();
-            String contact = tfContact.getText().trim();
+            String name;
+            String surname;
+            long contact ;
             int seatClassIndex = cbClass.getSelectedIndex() == 1 ? 1 : 0;
 
+
+
+            try            {
+                contact = Long.parseLong(tfContact.getText().trim());
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid contact number. Must be numeric.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            try {
+                surname = tfSurname.getText().trim();
+                if (!surname.matches("\\p{L}+")) throw new Exception("Surname cannot be empty and must contain letters only.");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid surname input.\n(Surname cannot be empty and must contain letters only)", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            try {
+                name = tfName.getText().trim();
+                if (!name.matches("\\p{L}+")) throw new Exception("Name cannot be empty and must contain letters only.");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid name input.\n(Name cannot be empty and must contain letters only)", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             try {
                 passengerId = Long.parseLong(tfId.getText().trim());
             } catch (Exception ex) {
@@ -189,9 +220,9 @@ public class AirlineGUI extends JFrame {
                 JOptionPane.showMessageDialog(this, "Reservation cancelled.", "Cancelled", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
-            Passenger passenger = new Passenger(passengerId, name, surname, Long.parseLong(contact));
+            Passenger passenger = new Passenger(passengerId, name, surname, contact);
             database.passengers.put(passengerId, passenger); 
-            FileOp.saveFile("/Users/mo/Desktop/AirlineManagment/src/passengers.csv", database.passengers.values(), false, true,
+            FileOp.saveFile("src/passengers.csv", database.passengers.values(), false, true,
 							 "passengerId,name,surname,contactNumber");
             Reservation r = ReservationManager.createReservation(database.flights.get(flightNum), passenger, plane.getSeatByNumber(selectedSeat), 
             		                             LocalDate.now(), seatClassIndex, database);
@@ -213,7 +244,7 @@ public class AirlineGUI extends JFrame {
 
             // Optionally mark the seat reserved in-memory so subsequent seat dialog shows it greyed out
             Seat s = plane.getSeatByNumber(selectedSeat);
-            if (s != null) s.setReservedStatus(true);
+            if (s != null) s.setReservedStatus(true,plane);
 
             // Clear passenger input fields so the dialog inputs are empty next time
             tfId.setText("");
@@ -244,7 +275,7 @@ public class AirlineGUI extends JFrame {
         panel.add(header, BorderLayout.NORTH);
 
         // Table Setup
-        String[] columnNames = {"Res Code", "Passenger Name", "Flight Num", "Seat", "Date"};
+        String[] columnNames = {"Res Code", "Passenger Name", "Flight Num", "Seat", "Date","Price"};
         reservationsTableModel = new DefaultTableModel(columnNames, 0);
 
         // Populate Table from HashMap
@@ -274,6 +305,7 @@ public class AirlineGUI extends JFrame {
             try {
                 //int resId = Integer.parseInt(idStr.trim());
                 boolean ok = ReservationManager.canelReservation(idStr.trim(), database);
+
                 if (ok) {
                     JOptionPane.showMessageDialog(this, "Reservation canceled.", "Canceled", JOptionPane.INFORMATION_MESSAGE);
                 } else {
@@ -289,24 +321,33 @@ public class AirlineGUI extends JFrame {
     }
 
     private void refreshReservationsTable() {
-        if (reservationsTableModel == null) return;
-        reservationsTableModel.setRowCount(0);
-        if (database.reservations != null) {
-            for (Reservation r : database.reservations.values()) {
-                Object[] row = {
-                    r.getReservationCode(),
-                    (r.getPassenger() != null) ? r.getPassenger().getName() : "Unknown",
-                    (r.getFlight() != null) ? r.getFlight().getFlightNum() : "Unknown",
-                    (r.getSeat() != null) ? r.getSeat().getSeatNum() : "Unknown",
-                    r.getDateOfReservation()
-                };
-                reservationsTableModel.addRow(row);
-            }
+    if (reservationsTableModel == null) return;
+    reservationsTableModel.setRowCount(0);
+    
+    // Check if tickets map exists
+    if (database.tickets != null) {
+        for (Ticket t : database.tickets.values()) {
+            
+            // Safety Check: If a ticket exists but has no linked reservation, skip it
+            if (t.getReservation() == null) continue;
+
+            Object[] row = {
+                t.getReservation().getReservationCode(),
+                (t.getReservation().getPassenger() != null) ? t.getReservation().getPassenger().getName() : "Unknown",
+                (t.getReservation().getFlight() != null) ? t.getReservation().getFlight().getFlightNum() : "Unknown",
+                (t.getReservation().getSeat() != null) ? t.getReservation().getSeat().getSeatNum() : "Unknown",
+                t.getReservation().getDateOfReservation(),
+                
+                // ADDED: The price directly from the ticket
+                String.format("$%.2f", t.getPrice()) 
+            };
+            reservationsTableModel.addRow(row);
         }
     }
+}
 
     // We'll keep references to the admin panel fields so we can clear them from other methods
-    private JTextField admin_tfPlaneId, admin_tfModel, admin_tfCapacity, admin_tfManufacturer;
+    private JTextField admin_tfPlaneId, admin_tfModel, admin_tfCapacity, admin_tfrows;
     private JTextField admin_tfFlightNum, admin_tfFrom, admin_tfTo, admin_tfDate, admin_tfTime, admin_tfDuration, admin_tfPlaneAssign;
 
     private JPanel createAdminPanel() {
@@ -378,39 +419,100 @@ public class AirlineGUI extends JFrame {
         admin_tfCapacity.setBounds(120, 90, 250, 25);
         planePanel.add(admin_tfCapacity);
 
-        JLabel lblManufacturer = new JLabel("Rows:");
-        lblManufacturer.setBounds(10, 125, 100, 25);
-        planePanel.add(lblManufacturer);
-        admin_tfManufacturer = new JTextField();
-        admin_tfManufacturer.setBounds(120, 125, 250, 25);
-        planePanel.add(admin_tfManufacturer);
-
+        JLabel lblrows = new JLabel("Rows:");
+        lblrows.setBounds(10, 125, 100, 25);
+        planePanel.add(lblrows);
+        admin_tfrows = new JTextField();
+        admin_tfrows.setBounds(120, 125, 250, 25);
+        planePanel.add(admin_tfrows);
         JButton btnCreatePlane = new JButton("Create Plane");
         btnCreatePlane.setBounds(120, 160, 140, 30);
         planePanel.add(btnCreatePlane);
 
         // When clicked, print the entered plane data to the console and clear fields
         btnCreatePlane.addActionListener(e -> {
-            String id = admin_tfPlaneId.getText().trim();
+
+            String idText = admin_tfPlaneId.getText().trim();
             String model = admin_tfModel.getText().trim();
-            String capacity = admin_tfCapacity.getText().trim();
-            String rows = admin_tfManufacturer.getText().trim();
-            
-            FlightManager.createPlane(Integer.parseInt(id),model,Integer.parseInt(capacity),Integer.parseInt(rows),database);
+            String capacityText = admin_tfCapacity.getText().trim();
+            String rowsText = admin_tfrows.getText().trim();
 
-            
-            System.out.println("[ADMIN] Create Plane requested:");
-            System.out.println("  Plane ID: " + id);
-            System.out.println("  Model: " + model);
-            System.out.println("  Capacity: " + capacity);
-            System.out.println("  Rows: " + rows);
+            // 1️ Empty check
+            if (idText.isEmpty() || model.isEmpty() ||
+                capacityText.isEmpty() || rowsText.isEmpty()) {
 
-            // Clear fields after printing
+                JOptionPane.showMessageDialog(
+                    null,
+                    "All fields are required.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            // 2️ Numeric validation
+            if (!idText.matches("\\d+") ||
+                !capacityText.matches("\\d+") ||
+                !rowsText.matches("\\d+")) {
+
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Plane ID, Capacity, and Rows must be numbers.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            int planeId = Integer.parseInt(idText);
+            int capacity = Integer.parseInt(capacityText);
+            int rows = Integer.parseInt(rowsText);
+
+            // 3️ Logical validation
+            if (planeId <= 0 || capacity <= 0 || rows <= 0) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Values must be greater than zero.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            // 4️ Model validation (letters + numbers + spaces)
+            if (!model.matches("[\\p{L}0-9 \\-]+")) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Model name contains invalid characters.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            //  If everything is valid
+            FlightManager.createPlane(
+                planeId,
+                model,
+                capacity,
+                rows,
+                database
+            );
+
+            JOptionPane.showMessageDialog(
+                null,
+                "Plane created successfully!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+
+            // Clear fields
             admin_tfPlaneId.setText("");
             admin_tfModel.setText("");
             admin_tfCapacity.setText("");
-            admin_tfManufacturer.setText("");
+            admin_tfrows.setText("");
         });
+
 
         panel.add(planePanel);
 
@@ -476,27 +578,102 @@ public class AirlineGUI extends JFrame {
 
         // Print entered flight data to the console when clicked and clear fields
         btnCreateFlight.addActionListener(e -> {
-            String flightNum = admin_tfFlightNum.getText().trim();
+
+            String flightNumText = admin_tfFlightNum.getText().trim();
             String from = admin_tfFrom.getText().trim();
             String to = admin_tfTo.getText().trim();
-            String date = admin_tfDate.getText().trim();
-            String time = admin_tfTime.getText().trim();
-            String duration = admin_tfDuration.getText().trim();
-            String assignedPlaneId = admin_tfPlaneAssign.getText().trim();
-            
-            FlightManager.createFlight(Integer.parseInt(flightNum),from,to,LocalDate.parse(date),LocalTime.parse(time),
-					   Duration.ofMinutes(Long.parseLong(duration)),database.planes.get(Integer.parseInt(assignedPlaneId)),database);
-            
-            System.out.println("[ADMIN] Create Flight requested:");
-            System.out.println("  Flight Num: " + flightNum);
-            System.out.println("  From: " + from);
-            System.out.println("  To: " + to);
-            System.out.println("  Date: " + date);
-            System.out.println("  Time: " + time);
-            System.out.println("  Duration: " + duration);
-            System.out.println("  Assigned Plane ID: " + assignedPlaneId);
+            String dateText = admin_tfDate.getText().trim();
+            String timeText = admin_tfTime.getText().trim();
+            String durationText = admin_tfDuration.getText().trim();
+            String planeIdText = admin_tfPlaneAssign.getText().trim();
 
-            // Clear fields after printing
+            // 1️⃣ Empty check
+            if (flightNumText.isEmpty() || from.isEmpty() || to.isEmpty() ||
+                dateText.isEmpty() || timeText.isEmpty() ||
+                durationText.isEmpty() || planeIdText.isEmpty()) {
+
+                JOptionPane.showMessageDialog(null,
+                    "All fields are required.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 2️⃣ Numeric checks
+            if (!flightNumText.matches("\\d+") ||
+                !durationText.matches("\\d+") ||
+                !planeIdText.matches("\\d+")) {
+
+                JOptionPane.showMessageDialog(null,
+                    "Flight number, duration and plane ID must be numbers.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            int flightNum = Integer.parseInt(flightNumText);
+            int planeId = Integer.parseInt(planeIdText);
+            long durationMinutes = Long.parseLong(durationText);
+
+            if (flightNum <= 0 || durationMinutes <= 0 || planeId <= 0) {
+                JOptionPane.showMessageDialog(null,
+                    "Numeric values must be greater than zero.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 3️⃣ From / To validation (letters + spaces)
+            if (!from.matches("[\\p{L} ]+") || !to.matches("[\\p{L} ]+")) {
+                JOptionPane.showMessageDialog(null,
+                    "From and To must contain letters only.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 4️⃣ Date & Time parsing (safe)
+            LocalDate date;
+            LocalTime time;
+
+            try {
+                date = LocalDate.parse(dateText); // ISO: YYYY-MM-DD
+                time = LocalTime.parse(timeText); // HH:MM
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(null,
+                    "Invalid date or time format.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 5️⃣ Plane existence check
+            if (!database.planes.containsKey(planeId)) {
+                JOptionPane.showMessageDialog(null,
+                    "Assigned plane does not exist.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // ✅ Everything valid → create flight
+            FlightManager.createFlight(
+                flightNum,
+                from,
+                to,
+                date,
+                time,
+                Duration.ofMinutes(durationMinutes),
+                database.planes.get(planeId),
+                database
+            );
+
+            JOptionPane.showMessageDialog(null,
+                "Flight created successfully!",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE);
+
+            // Clear fields
             admin_tfFlightNum.setText("");
             admin_tfFrom.setText("");
             admin_tfTo.setText("");
@@ -505,6 +682,7 @@ public class AirlineGUI extends JFrame {
             admin_tfDuration.setText("");
             admin_tfPlaneAssign.setText("");
         });
+
 
         panel.add(flightCreatePanel);
 
@@ -598,7 +776,7 @@ public class AirlineGUI extends JFrame {
         if (admin_tfPlaneId != null) admin_tfPlaneId.setText("");
         if (admin_tfModel != null) admin_tfModel.setText("");
         if (admin_tfCapacity != null) admin_tfCapacity.setText("");
-        if (admin_tfManufacturer != null) admin_tfManufacturer.setText("");
+        if (admin_tfrows != null) admin_tfrows.setText("");
 
         if (admin_tfFlightNum != null) admin_tfFlightNum.setText("");
         if (admin_tfFrom != null) admin_tfFrom.setText("");

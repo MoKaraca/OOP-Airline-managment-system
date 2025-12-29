@@ -14,23 +14,62 @@ public class Plane {
 	private int capacity;
 	private Seat seatM[][];
 	private int colAmount;
+	private int emptySeatsCount;
+	private int fulledSeatsCount;
 	private Map<String,Seat> seatMap = new HashMap<>();
 	
+		public Map<String, Seat> getSeatMap() {
+		return seatMap;
+	}
+
+
+
+	public void setSeatMap(Map<String, Seat> seatMap) {
+		this.seatMap = seatMap;
+	}
+
+
+
+		public int getFulledSeatsCount() {
+		return fulledSeatsCount;
+	}
+
+
+
+	public void setFulledSeatsCount(int fulledSeatsCount) {
+		this.fulledSeatsCount = fulledSeatsCount;
+	}
+
+
+
 		public Plane(int planeId,String planeModel,int capacity,int seatAmount) {
 			this.planeID = planeId;
 			this.planeModel = planeModel;
 			this.capacity = capacity;
 			int col = capacity/seatAmount;
 			this.seatM = new Seat[seatAmount][col];			
-			
+			this.emptySeatsCount = capacity;
 			SeatManager.initializeSeats(seatAmount,col,seatM,seatMap);
 			this.colAmount= seatAmount;
+			this.fulledSeatsCount = 0;
 			
 		}
 		
 
 
-		    public Seat getSeatByNumber(String seatNum) {
+		    public int getEmptySeatsCount() {
+			return emptySeatsCount;
+		}
+
+
+
+		public void setEmptySeatsCount(int emptySeatsCount) {
+			this.emptySeatsCount = emptySeatsCount;
+		}
+
+
+
+			public Seat getSeatByNumber(String seatNum) {
 		        return seatMap.get(seatNum);
 		    }
 		

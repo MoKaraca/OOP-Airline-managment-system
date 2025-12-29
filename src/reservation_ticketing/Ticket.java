@@ -73,7 +73,7 @@ public class Ticket {
 		
 		public String toString() {
 		    return getTicketId() + "," +
-		           getReservationCode() + "," +
+		           getReservation().getReservationCode() + "," +
 		           getPrice() + "," +
 		           getBaggageAllowance();
 		}

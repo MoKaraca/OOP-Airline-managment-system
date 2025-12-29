@@ -46,32 +46,32 @@ public class FlightManager {
 		//since the FileOp class is a helper class not a object type class its functions should be static as well(it has an empty constructor)
 		Database data = new Database();
 		
-		data.planes = FileOp.getPlaneData("/Users/mo/Desktop/AirlineManagment/src/planes.csv");
-		data.flights = FileOp.getFlightData("/Users/mo/Desktop/AirlineManagment/src/flights.csv",data.planes);
-		data.passengers = FileOp.getPassengerData("/Users/mo/Desktop/AirlineManagment/src/passengers.csv");
-		data.reservations = FileOp.getReservationData("/Users/mo/Desktop/AirlineManagment/src/reservations.csv",data.flights,data.passengers);
-		data.tickets = FileOp.getTicketData("/Users/mo/Desktop/AirlineManagment/src/tickets.csv",data.reservations,data.flights);
+		data.planes = FileOp.getPlaneData("src/planes.csv");
+		data.flights = FileOp.getFlightData("src/flights.csv",data.planes);
+		data.passengers = FileOp.getPassengerData("src/passengers.csv");
+		data.reservations = FileOp.getReservationData("src/reservations.csv",data.flights,data.passengers);
+		data.tickets = FileOp.getTicketData("src/tickets.csv",data.reservations,data.flights);
 		return data;
 		
 	}
 	public static Flight createFlight(int flightNum,String departurePlace,String arrivalPlace,LocalDate date,LocalTime hour,Duration duration,Plane plane,Database db) {
 		Flight flight = new Flight(flightNum,departurePlace,arrivalPlace,date,hour,duration,plane);
 		db.flights.put(flightNum, flight);
-		FileOp.saveFile("/Users/mo/Desktop/AirlineManagment/src/flights.csv", db.flights.values(),false,true,
+		FileOp.saveFile("src/flights.csv", db.flights.values(),false,true,
 				        "flightNum,departure,arrival,date,time,duration,planeId");
 		return flight;
 	}
 	public static Plane createPlane(int planeId,String model,int capacity,int rows,Database db) {
 		Plane plane = new Plane(planeId,model,capacity,rows);
 		db.planes.put(planeId, plane);
-		FileOp.saveFile("/Users/mo/Desktop/AirlineManagment/src/planes.csv", db.planes.values(),false,true,
+		FileOp.saveFile("src/planes.csv", db.planes.values(),false,true,
 				        "planeId,model,capacity,rows");
 		return plane;
 	}
 	public static Flight updateFlight(Database db,Flight flight) {
 		if(db.flights.containsKey(flight.getFlightNum())) {
 			db.flights.put(flight.getFlightNum(), flight);
-			FileOp.saveFile("/Users/mo/Desktop/AirlineManagment/src/flights.csv", db.flights.values(),false,true,
+			FileOp.saveFile("src/flights.csv", db.flights.values(),false,true,
 					        "flightNum,departure,arrival,date,time,duration,planeId");
 		}
 		return flight;
@@ -84,7 +84,7 @@ public class FlightManager {
 			return false;
 		}
 		db.flights.remove(flightNum);
-		FileOp.saveFile("/Users/mo/Desktop/AirlineManagment/src/flights.csv", db.flights.values(),false,true,
+		FileOp.saveFile("src/flights.csv", db.flights.values(),false,true,
 				        "flightNum,departure,arrival,date,time,duration,planeId");
 		return true;
 	}
