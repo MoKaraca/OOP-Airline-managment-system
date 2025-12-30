@@ -1,12 +1,4 @@
 planeId,model,capacity,rows
-1,Boeing 737,180,30
-2,boing,150,12
-50,nothing,300,50
-1234,boing,120,30
-3,ggg,233,30
-4,fffffff,120,7
-20,some,120,20
-1207,boing 747,120,30
-12345,xxxx,200,20
-10,test,200,30
-1134,boing,300,30
+1,Boeing 737,60,10
+2,Airbus A320,120,20
+3,Embraer E175,40,10

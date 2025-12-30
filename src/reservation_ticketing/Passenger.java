@@ -1,16 +1,38 @@
 package reservation_ticketing;
 
-public class Passenger {
+import flightManagment.Flight;
+import service_management.SeatManager;
+
+public class Passenger implements Runnable {
 	private long passengerId;
 	private String name;
 	private String surname;
 	private long contactNum;
+	private  boolean SyncType; // true for method level false for block level
+	private Flight flight;
 	
 	public Passenger(long passengerId,String name,String surname,long contactNum) {
 		this.passengerId = passengerId;
 		this.name = name;
 		this.surname = surname;
 		this.contactNum = contactNum;
+	}
+	
+	public boolean isSyncType() {
+		return SyncType;
+	}
+
+	public void setSyncType(boolean syncType) {
+		SyncType = syncType;
+	}
+
+	public Passenger(boolean SyncType,long passengerId,String name,String surname,long contactNum,Flight flight) {
+		this.SyncType = SyncType;
+		this.passengerId = passengerId;
+		this.name = name;
+		this.surname = surname;
+		this.contactNum = contactNum;
+		this.flight = flight;
 	}
 
 	public long getPassengerId() {
@@ -50,6 +72,15 @@ public class Passenger {
 	           getName() + "," +
 	           getSurname() + "," +
 	           getContactNum();
+	}
+
+	@Override
+	public void run() {
+		if (SyncType) {
+            SeatManager.reserveSeatSafe(flight);
+        } else {
+            SeatManager.reserveSeatUnsafe(flight);
+        }
 	}
 
 	

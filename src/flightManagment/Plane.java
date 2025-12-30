@@ -70,9 +70,11 @@ public class Plane {
 
 
 			public Seat getSeatByNumber(String seatNum) {
-		        return seatMap.get(seatNum);
+				if (seatMap.get(seatNum) == null) {
+					throw new IllegalArgumentException("Seat " + seatNum + " does not exist");
+				} else 
+					return seatMap.get(seatNum);
 		    }
-		
 
 		public int getPlaneID() {
 			return planeID;

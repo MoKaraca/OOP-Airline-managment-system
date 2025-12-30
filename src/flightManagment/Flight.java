@@ -1,6 +1,7 @@
 package flightManagment;
-import java.time.*;
-import service_management.FileOp;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import service_management.FlightManager;
 import java.util.*;
 
@@ -16,6 +17,7 @@ public class Flight extends FlightManager {
 	private Duration duration; // decimal cant be more than 0.59 // brings back duration
 	private Plane plane;
 	private Map<Integer, Ticket> ticketList;
+	private double OccupancyRate;
 	//LocalTime time = LocalTime.of(14, 30);
 	//LocalDateTime dt = LocalDateTime.of(2026, 1, 9, 14, 30);
 
@@ -29,6 +31,7 @@ public class Flight extends FlightManager {
 		this.duration = duration;
 		this.plane = plane;
 		ticketList = new HashMap<>();
+		this.OccupancyRate = 0.0;
 		
 	}
 	public void addTicket(Ticket ticket) {
@@ -40,6 +43,13 @@ public class Flight extends FlightManager {
 	}
 	public Plane getPlane() {
 		return plane;
+	}
+	public double getOccupancyRate() {
+		OccupancyRate = ((double)ticketList.size() / plane.getCapacity()) * 100;
+		return OccupancyRate;
+	}
+	public void setOccupancyRate(double occupancyRate) {
+		OccupancyRate = occupancyRate;
 	}
 	public void setPlane(Plane plane) {
 		this.plane = plane;

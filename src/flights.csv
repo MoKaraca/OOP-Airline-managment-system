@@ -1,8 +1,4 @@
 flightNum,departure,arrival,date,time,duration,planeId
-1347,kazakh,iii,2020-12-24,14:30,PT5M,3
-452,ggkjkc,vvvvvv,2501-12-08,14:30,PT5M,2
-1015,is,iz,2025-12-25,12:11,PT2H,10
-1001,Istanbul,Ankara,2026-01-09,14:30,PT1H15M,1
-1002,dubai,Izmir,2026-01-10,09:00,PT1H5M,2
-1003,is,Berlin,2026-01-12,22:15,PT3H45M,3
-4523,egypt,saudi,2020-04-07,15:07,PT1H40M,2
+1001,New York,London,2025-12-30,14:30,PT7H,1
+1002,Paris,Berlin,2025-11-15,09:00,PT1H45M,3
+1003,Tokyo,Seoul,2026-01-20,18:15,PT2H30M,2
