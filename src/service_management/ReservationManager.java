@@ -29,9 +29,9 @@ public class ReservationManager {
 	}
 	public static Ticket issueTicket(Reservation reservation,double price,int baggaeWeight,Database database) {
 		Ticket ticket = new Ticket(reservation,price,baggaeWeight);
-		database.tickets.put(ticket.getTicketId(), ticket);
+		database.getTickets().put(ticket.getTicketId(), ticket);
 		reservation.getFlight().addTicket(ticket);
-		FileOp.saveFile("/Users/mo/Desktop/AirlineManagment/src/tickets.csv", database.tickets.values(),false,true,
+		FileOp.saveFile("/Users/mo/Desktop/AirlineManagment/src/tickets.csv", database.getTickets().values(),false,true,
 						"ticketNum,reservationCode,price,baggaeWeight");
 		return ticket;
 	}

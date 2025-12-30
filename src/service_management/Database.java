@@ -13,7 +13,7 @@ import java.util.HashMap;
 	    // Key: String (Unique ID), Value: Object
 	    private Map<Long, Passenger> passengers;
 	    private Map<Integer, Flight> flights;
-	    Map<Integer, Ticket> tickets;
+	    private Map<Integer, Ticket> tickets;
 	    private Map<String, Reservation> reservations;
 	    private Map<Integer, Plane> planes;
 	    private double totalOccupancy;
@@ -21,7 +21,7 @@ import java.util.HashMap;
 	    public Database() {
 	        setPassengers(new HashMap<>());
 	        setFlights(new HashMap<>());
-	        tickets = new HashMap<>();
+	        setTickets(new HashMap<>());
 	        setReservations(new HashMap<>());
 	        setPlanes(new HashMap<>());
 	    }
@@ -98,5 +98,13 @@ import java.util.HashMap;
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public Map<Integer, Ticket> getTickets() {
+		return tickets;
+	}
+
+	public void setTickets(Map<Integer, Ticket> tickets) {
+		this.tickets = tickets;
 	}
 	}

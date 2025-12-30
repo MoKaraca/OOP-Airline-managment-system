@@ -18,7 +18,7 @@ public class FlightManager {
 		data.setFlights(FileOp.getFlightData("/Users/mo/Desktop/AirlineManagment/src/flights.csv",data.getPlanes()));
 		data.setPassengers(FileOp.getPassengerData("/Users/mo/Desktop/AirlineManagment/src/passengers.csv"));
 		data.setReservations(FileOp.getReservationData("/Users/mo/Desktop/AirlineManagment/src/reservations.csv",data.getFlights(),data.getPassengers()));
-		data.tickets = FileOp.getTicketData("/Users/mo/Desktop/AirlineManagment/src/tickets.csv",data.getReservations(),data.getFlights());
+		data.setTickets(FileOp.getTicketData("/Users/mo/Desktop/AirlineManagment/src/tickets.csv",data.getReservations(),data.getFlights()));
 		return data;
 		
 	}
