@@ -1,0 +1,3 @@
+reservationCode,flightNum,passengerId,seatNum,dateOfReservation
+R78586,1014,24011962,A1,2025-12-31
+R72288,1011,24011962,I3,2025-12-31

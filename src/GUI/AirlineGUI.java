@@ -16,10 +16,14 @@ import reservation_ticketing.Reservation;
 import reservation_ticketing.Ticket;
 import service_management.CalculatePrice;
 import service_management.Database;
+import service_management.DateCheck;
 import service_management.FileOp;
 import service_management.FlightManager;
-import service_management.ReservationManager; 
-public class AirlineGUI extends JFrame {
+import service_management.ReservationManager;
+
+public class AirlineGUI extends JFrame implements Runnable {
+
+
 	
 	
 	
@@ -821,49 +825,49 @@ public class AirlineGUI extends JFrame {
 			});
 
 			// Save changes back to database and write CSV
-			btnSaveStaff.addActionListener(e -> {
-				String idStr = tfStaffId.getText().trim();
-				if (idStr.isEmpty()) return;
-				try {
-					long id = Long.parseLong(idStr);
-					String name = tfStaffName.getText().trim();
-					String role = tfStaffRole.getText().trim();
-					if (name.isEmpty() || role.isEmpty()) {
-						JOptionPane.showMessageDialog(this, "Name and role cannot be empty.", "Input Error", JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-					Map<Long, Staff> staffs = database.getStaffMembers();
-					if (staffs == null) staffs = new java.util.HashMap<>();
-					Staff s = staffs.get(id);
-					if (s == null) {
-						s = new Staff((int)id, name, role);
-					} else {
-						s.setName(name);
-						s.setRole(role);
-					}
-					staffs.put(id, s);
-					database.setStaffMembers(staffs);
-
-					// Persist to CSV
-					try (java.io.FileWriter fw = new java.io.FileWriter("src/staff.csv", false)) {
-						fw.write("staffId,name,role" + System.lineSeparator());
-						for (Staff st : staffs.values()) {
-							fw.write(st.getStaffID() + "," + st.getName() + "," + st.getRole() + System.lineSeparator());
+				btnSaveStaff.addActionListener(e -> {
+					String idStr = tfStaffId.getText().trim();
+					if (idStr.isEmpty()) return;
+					try {
+						long id = Long.parseLong(idStr);
+						String name = tfStaffName.getText().trim();
+						String role = tfStaffRole.getText().trim();
+						
+						if (name.isEmpty() || role.isEmpty()) {
+							JOptionPane.showMessageDialog(this, "Name and role cannot be empty.", "Input Error", JOptionPane.ERROR_MESSAGE);
+							return;
 						}
-					} catch (Exception ex) {
-						JOptionPane.showMessageDialog(this, "Failed to save staff file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-						return;
-					}
 
-					JOptionPane.showMessageDialog(this, "Staff information saved.", "Saved", JOptionPane.INFORMATION_MESSAGE);
-					// Clear input fields after successful save
-					tfStaffId.setText("");
-					tfStaffName.setText("");
-					tfStaffRole.setText("");
-				} catch (NumberFormatException ex) {
-					JOptionPane.showMessageDialog(this, "Staff ID must be numeric.", "Input Error", JOptionPane.ERROR_MESSAGE);
-				}
-			});
+						// Update Database in Memory
+						Map<Long, Staff> staffs = database.getStaffMembers();
+						if (staffs == null) staffs = new java.util.HashMap<>();
+						
+						Staff s = staffs.get(id);
+						if (s == null) {
+							s = new Staff((int)id, name, role);
+						} else {
+							s.setName(name);
+							s.setRole(role);
+						}
+						staffs.put(id, s);
+						database.setStaffMembers(staffs);
+
+						// --- FIX: Save using FileOp logic ---
+						service_management.FileOp.saveFile("staff.csv", staffs.values(), false, true, "staffId,name,role");
+
+						JOptionPane.showMessageDialog(this, "Staff information saved.", "Saved", JOptionPane.INFORMATION_MESSAGE);
+						
+						// Clear input fields
+						tfStaffId.setText("");
+						tfStaffName.setText("");
+						tfStaffRole.setText("");
+
+					} catch (NumberFormatException ex) {
+						JOptionPane.showMessageDialog(this, "Staff ID must be numeric.", "Input Error", JOptionPane.ERROR_MESSAGE);
+					} catch (Exception ex) {
+						JOptionPane.showMessageDialog(this, "An error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+					}
+				});
 
 			panel.add(staffPanel);
 
@@ -1071,4 +1075,33 @@ public class AirlineGUI extends JFrame {
 			}
 			System.out.println("Inline simulation complete. Reserved: " + ((flight.getPlane()!=null)?flight.getPlane().getFulledSeatsCount():0));
 		}
+
+	@Override
+	public void run() {
+		/**
+		 * Background thread that continuously checks for completed flights and removes them.
+		 * Runs every 30 seconds to keep the database clean.
+		 * Also removes all associated reservations and tickets.
+		 */
+		System.out.println("[AirlineGUI Thread] Flight expiration checker started.");
+		
+		while (true) {
+			try {
+				// Check for expired flights every 30 seconds
+				Thread.sleep(15000); // 15 seconds for testing; change to 30000 for production
+				
+				synchronized (database) {
+					DateCheck.isDateInPast(LocalDate.now(), database);
+				}
+				
+			} catch (InterruptedException e) {
+				System.out.println("[AirlineGUI Thread] Flight checker interrupted: " + e.getMessage());
+				break;
+			} catch (Exception e) {
+				System.out.println("[AirlineGUI Thread] Error in flight expiration checker: " + e.getMessage());
+				e.printStackTrace();
+			}
+		}
+		System.out.println("[AirlineGUI Thread] Flight expiration checker stopped.");
+	}
 }
