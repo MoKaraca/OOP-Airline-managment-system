@@ -26,7 +26,8 @@ public class Staff {
                 public void setStaffID(int staffID) {
                     this.staffID = staffID;
                 }
+                @Override
                 public String toString() {
-                    return "Staff ID: " + staffID + ", Name: " + name + ", Role: " + role;
+                    return staffID+"," + name + "," + role;
                 }
 }

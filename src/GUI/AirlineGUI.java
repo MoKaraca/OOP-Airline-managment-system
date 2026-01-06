@@ -8,6 +8,7 @@ import flightManagment.Plane;
 import flightManagment.Seat;
 import java.awt.*;
 import java.time.*;
+import java.util.ArrayList;
 import java.util.Map;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -46,58 +47,88 @@ public class AirlineGUI extends JFrame implements Runnable {
 	        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	        setLocationRelativeTo(null);
 
-	        // Main Tabbed Pane
-	        JTabbedPane tabbedPane = new JTabbedPane();
+        // Create main panel with logout button at top
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        
+        // Top panel with logout button
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnLogout = new JButton("Logout");
+        btnLogout.addActionListener(e -> performLogout());
+        topPanel.add(btnLogout);
+        mainPanel.add(topPanel, BorderLayout.NORTH);
 
-	        // 1. Flight Management Tab
-	        JPanel flightPanel = createFlightPanel();
-	        tabbedPane.addTab("Flight Search & View", flightPanel);
+        // Main Tabbed Pane
+        JTabbedPane tabbedPane = new JTabbedPane();
 
-	        // 2. Reservation Management Tab
-	        JPanel reservationPanel = createReservationPanel();
-			tabbedPane.addTab("Reservations", reservationPanel);
+        // 1. Flight Management Tab
+        JPanel flightPanel = createFlightPanel();
+        tabbedPane.addTab("Flight Search & View", flightPanel);
 
-			// 3. Admin / Simulation Tab (only add if allowed)
-			if (showAdminPanel) {
-				JPanel adminPanel = createAdminPanel();
-				tabbedPane.addTab("Admin & Simulation", adminPanel);
-			}
+        // 2. Reservation Management Tab
+        JPanel reservationPanel = createReservationPanel();
+		tabbedPane.addTab("Reservations", reservationPanel);
 
-	        add(tabbedPane);
-	    }
+		// 3. Admin / Simulation Tab (only add if allowed)
+		if (showAdminPanel) {
+			JPanel adminPanel = createAdminPanel();
+			tabbedPane.addTab("Admin & Simulation", adminPanel);
+		}
 
-	    // --- TAB 1: FLIGHT MANAGEMENT ---
+        mainPanel.add(tabbedPane, BorderLayout.CENTER);
+        add(mainPanel);
+    }
 
-	    private void refreshFlightsTable() {
-	        if (flightsTableModel == null) return;
-	        flightsTableModel.setRowCount(0);
-	        if (database.getFlights() != null) {
-	            for (Flight f : database.getFlights().values()) {
-	                String seatAvailability = "N/A";
-	                if (f.getPlane() != null) {
-	                    seatAvailability = f.getPlane().getEmptySeatsCount() + " / " + f.getPlane().getCapacity();
-	                }
+    /**
+     * Logout method: closes current GUI and returns to login screen
+     */
+    private void performLogout() {
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "Are you sure you want to logout?", 
+            "Confirm Logout", 
+            JOptionPane.YES_NO_OPTION);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Create new login GUI
+            LoginGUI login = new LoginGUI(database);
+            login.setVisible(true);
+            
+            // Close current window
+            this.dispose();
+        }
+    }
 
-	                Object[] row = {
-	                    f.getFlightNum(),
-	                    f.getDeparturePlace(),
-	                    f.getArrivalPlace(),
-	                    f.getDate(),
-	                    f.getHour(),
-	                    f.getDuration(),
-	                    (f.getPlane() != null) ? f.getPlane().getPlaneModel() : "N/A",
-	                    seatAvailability
-	                };
-	                flightsTableModel.addRow(row);
-	            }
-	        }
-	    }
+    // --- TAB 1: FLIGHT MANAGEMENT ---
 
-	    private JPanel createFlightPanel() {
-	        JPanel panel = new JPanel(new BorderLayout());
+    private void refreshFlightsTable() {
+        if (flightsTableModel == null) return;
+        flightsTableModel.setRowCount(0);
+        if (database.getFlights() != null) {
+            for (Flight f : database.getFlights().values()) {
+                String seatAvailability = "N/A";
+                if (f.getPlane() != null) {
+                    seatAvailability = f.getPlane().getEmptySeatsCount() + " / " + f.getPlane().getCapacity();
+                }
 
-			// --- Search Bar (by Flight ID)
-			JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+                Object[] row = {
+                    f.getFlightNum(),
+                    f.getDeparturePlace(),
+                    f.getArrivalPlace(),
+                    f.getDate(),
+                    f.getHour(),
+                    f.getDuration(),
+                    (f.getPlane() != null) ? f.getPlane().getPlaneModel() : "N/A",
+                    seatAvailability
+                };
+                flightsTableModel.addRow(row);
+            }
+        }
+    }
+
+    private JPanel createFlightPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+		// --- Search Bar (by Flight ID)
+		JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
 			JTextField tfFromSearch = new JTextField(10);
 			JTextField tfToSearch = new JTextField(10);
 			JButton btnSearch = new JButton("Search (From -> To)");
@@ -346,52 +377,153 @@ public class AirlineGUI extends JFrame implements Runnable {
 	    private JPanel createReservationPanel() {
 	        JPanel panel = new JPanel(new BorderLayout());
 
-	        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
-	        header.add(new JLabel("Active Reservations:"));
-	        panel.add(header, BorderLayout.NORTH);
+        // --- Search Bar for Reservations ---
+        JPanel searchBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        JTextField tfResId = new JTextField(12);
+        JTextField tfPassengerName = new JTextField(12);
+        JTextField tfDate = new JTextField(12);
+        JButton btnSearch = new JButton("Search");
+        JButton btnClear = new JButton("Clear");
+        
+        searchBar.add(new JLabel("Res ID:"));
+        searchBar.add(tfResId);
+        searchBar.add(new JLabel("Passenger Name:"));
+        searchBar.add(tfPassengerName);
+        searchBar.add(new JLabel("Date (YYYY-MM-DD):"));
+        searchBar.add(tfDate);
+        searchBar.add(btnSearch);
+        searchBar.add(btnClear);
 
-	        String[] columnNames = {"Res Code", "Passenger Name", "Flight Num", "Seat", "Date", "Price"};
-	        reservationsTableModel = new DefaultTableModel(columnNames, 0);
+        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        header.add(new JLabel("Active Reservations:"));
 
-	        refreshReservationsTable();
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.add(header, BorderLayout.NORTH);
+        topPanel.add(searchBar, BorderLayout.SOUTH);
+        panel.add(topPanel, BorderLayout.NORTH);
 
-	        reservationsTable = new JTable(reservationsTableModel);
-	        panel.add(new JScrollPane(reservationsTable), BorderLayout.CENTER);
+        String[] columnNames = {"Res Code", "Passenger Name", "Flight Num", "Seat", "Date", "Price"};
+        reservationsTableModel = new DefaultTableModel(columnNames, 0);
 
-	        JPanel bottom = new JPanel();
-	        JButton btnCancelRes = new JButton("Cancel Reservation");
-	        JButton btnRefresh = new JButton("Refresh");
-	        bottom.add(btnRefresh);
-	        bottom.add(btnCancelRes);
-	        panel.add(bottom, BorderLayout.SOUTH);
+        refreshReservationsTable();
 
-	        btnRefresh.addActionListener(e -> refreshReservationsTable());
+        reservationsTable = new JTable(reservationsTableModel);
+        panel.add(new JScrollPane(reservationsTable), BorderLayout.CENTER);
 
-	        btnCancelRes.addActionListener(e -> {
-	            int sel = reservationsTable.getSelectedRow();
-	            String idStr = null;
-	            if (sel != -1) {
-	                idStr = reservationsTableModel.getValueAt(sel, 0).toString();
-	            } else {
-	                idStr = JOptionPane.showInputDialog(this, "Enter reservation ID to cancel:", "Cancel Reservation", JOptionPane.PLAIN_MESSAGE);
-	            }
-	            if (idStr == null || idStr.trim().isEmpty()) return;
-	            try {
-	                //int resId = Integer.parseInt(idStr.trim());
-	                boolean ok = ReservationManager.canelReservation(idStr.trim(), database);
-	                if (ok) {
-	                    JOptionPane.showMessageDialog(this, "Reservation canceled.", "Canceled", JOptionPane.INFORMATION_MESSAGE);
-	                } else {
-	                    JOptionPane.showMessageDialog(this, "Reservation not found or could not be canceled.", "Error", JOptionPane.ERROR_MESSAGE);
-	                }
-	                refreshReservationsTable();
-	            } catch (NumberFormatException ex) {
-	                JOptionPane.showMessageDialog(this, "Reservation ID must be numeric.", "Input Error", JOptionPane.ERROR_MESSAGE);
-	            }
-	        });
+        JPanel bottom = new JPanel();
+        JButton btnCancelRes = new JButton("Cancel Reservation");
+        JButton btnRefresh = new JButton("Refresh");
+        bottom.add(btnRefresh);
+        bottom.add(btnCancelRes);
+        panel.add(bottom, BorderLayout.SOUTH);
 
-	        return panel;
-	    }
+        btnRefresh.addActionListener(e -> refreshReservationsTable());
+
+        btnSearch.addActionListener(e -> {
+            String resId = tfResId.getText().trim();
+            String passengerName = tfPassengerName.getText().trim();
+            String dateStr = tfDate.getText().trim();
+            
+            // At least one field should have input
+            if (resId.isEmpty() && passengerName.isEmpty() && dateStr.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter at least one search criterion.", "Input Required", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            // Parse date if provided
+            LocalDate searchDate = null;
+            if (!dateStr.isEmpty()) {
+                try {
+                    searchDate = LocalDate.parse(dateStr);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Invalid date format. Please use YYYY-MM-DD.", "Date Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+            
+            // Perform search
+            java.util.List<Reservation> results = ReservationManager.searchReservations(
+                resId.isEmpty() ? null : resId,
+                passengerName.isEmpty() ? null : passengerName,
+                searchDate,
+                database
+            );
+            
+            // Filter by current user if not admin
+            if (currentUser != null) {
+                java.util.List<Reservation> filteredResults = new ArrayList<>();
+                for (Reservation r : results) {
+                    if (r.getPassenger() != null && r.getPassenger().getPassengerId() == currentUser.getPassengerId()) {
+                        filteredResults.add(r);
+                    }
+                }
+                results = filteredResults;
+            }
+            
+            // Display results
+            if (results.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No matching reservations found.", "Search", JOptionPane.INFORMATION_MESSAGE);
+                refreshReservationsTable();
+                return;
+            }
+            
+            reservationsTableModel.setRowCount(0);
+            for (Reservation r : results) {
+                // Try to get price from ticket
+                String price = "N/A";
+                if (database.getTickets() != null) {
+                    for (Ticket t : database.getTickets().values()) {
+                        if (t.getReservation() != null && t.getReservation().getReservationCode().equals(r.getReservationCode())) {
+                            price = String.format("$%.2f", t.getPrice());
+                            break;
+                        }
+                    }
+                }
+                
+                Object[] row = {
+                    r.getReservationCode(),
+                    (r.getPassenger() != null) ? r.getPassenger().getName() + " " + r.getPassenger().getSurname() : "Unknown",
+                    (r.getFlight() != null) ? r.getFlight().getFlightNum() : "Unknown",
+                    (r.getSeat() != null) ? r.getSeat().getSeatNum() : "Unknown",
+                    r.getDateOfReservation(),
+                    price
+                };
+                reservationsTableModel.addRow(row);
+            }
+        });
+
+        btnClear.addActionListener(e -> {
+            tfResId.setText("");
+            tfPassengerName.setText("");
+            tfDate.setText("");
+            refreshReservationsTable();
+        });
+
+        btnCancelRes.addActionListener(e -> {
+            int sel = reservationsTable.getSelectedRow();
+            String idStr = null;
+            if (sel != -1) {
+                idStr = reservationsTableModel.getValueAt(sel, 0).toString();
+            } else {
+                idStr = JOptionPane.showInputDialog(this, "Enter reservation ID to cancel:", "Cancel Reservation", JOptionPane.PLAIN_MESSAGE);
+            }
+            if (idStr == null || idStr.trim().isEmpty()) return;
+            try {
+                //int resId = Integer.parseInt(idStr.trim());
+                boolean ok = ReservationManager.canelReservation(idStr.trim(), database);
+                if (ok) {
+                    JOptionPane.showMessageDialog(this, "Reservation canceled.", "Canceled", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Reservation not found or could not be canceled.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                refreshReservationsTable();
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Reservation ID must be numeric.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        return panel;
+    }
 
 	    private void refreshReservationsTable() {
 	        if (reservationsTableModel == null) return;
@@ -667,30 +799,50 @@ public class AirlineGUI extends JFrame implements Runnable {
 	            String capacity = admin_tfCapacity.getText().trim();
 	            String rows = admin_tfrows.getText().trim();
 	            
-	            FlightManager.createPlane(Integer.parseInt(id),model,Integer.parseInt(capacity),Integer.parseInt(rows),database);
-	            //planes dont get saved in real time need to reload from file
-	    		//db.planes = FileOp.getPlaneData("/Users/mo/Desktop/AirlineManagment/src/planes.csv");
+            // Validate inputs
+            if (id.isEmpty() || model.isEmpty() || capacity.isEmpty() || rows.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All fields are required. Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            try {
+                int planeId = Integer.parseInt(id);
+                int planeCapacity = Integer.parseInt(capacity);
+                int planeRows = Integer.parseInt(rows);
+                
+                // Validate positive numbers
+                if (planeId <= 0 || planeCapacity <= 0 || planeRows <= 0) {
+                    JOptionPane.showMessageDialog(this, "Plane ID, Capacity, and Rows must be positive numbers.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                FlightManager.createPlane(planeId, model, planeCapacity, planeRows, database);
+                
+                System.out.println("[ADMIN] Create Plane requested:");
+                System.out.println("  Plane ID: " + id);
+                System.out.println("  Model: " + model);
+                System.out.println("  Capacity: " + capacity);
+                System.out.println("  Rows: " + rows);
+                
+                JOptionPane.showMessageDialog(this, "Plane created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
+                // Clear fields after printing
+                admin_tfPlaneId.setText("");
+                admin_tfModel.setText("");
+                admin_tfCapacity.setText("");
+                admin_tfrows.setText("");
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid input format.\nPlane ID, Capacity, and Rows must be numeric values.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error creating plane: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
 
-	            
-	            System.out.println("[ADMIN] Create Plane requested:");
-	            System.out.println("  Plane ID: " + id);
-	            System.out.println("  Model: " + model);
-	            System.out.println("  Capacity: " + capacity);
-	            System.out.println("  Rows: " + rows);
+        panel.add(planePanel);
 
-	            // Clear fields after printing
-	            admin_tfPlaneId.setText("");
-	            admin_tfModel.setText("");
-	            admin_tfCapacity.setText("");
-	            admin_tfrows.setText("");
-	        });
-
-	        panel.add(planePanel);
-
-	        // --- New: Flight Creation Panel ---
-	        JPanel flightCreatePanel = new JPanel();
-	        flightCreatePanel.setBorder(BorderFactory.createTitledBorder("Create New Flight"));
+        // --- New: Flight Creation Panel ---
+        JPanel flightCreatePanel = new JPanel();
+        flightCreatePanel.setBorder(BorderFactory.createTitledBorder("Create New Flight"));
 	        flightCreatePanel.setBounds(450, 290, 400, 270);
 	        flightCreatePanel.setLayout(null);
 
@@ -757,52 +909,107 @@ public class AirlineGUI extends JFrame implements Runnable {
 	            String time = admin_tfTime.getText().trim();
 	            String duration = admin_tfDuration.getText().trim();
 	            String assignedPlaneId = admin_tfPlaneAssign.getText().trim();
-	            if (!database.getPlanes().containsKey(Integer.parseInt(assignedPlaneId))) {
-	                JOptionPane.showMessageDialog(null, "Assigned plane does not exist.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-	                return;
-	            }
+            
+            // Validate all fields are filled
+            if (flightNum.isEmpty() || from.isEmpty() || to.isEmpty() || date.isEmpty() || 
+                time.isEmpty() || duration.isEmpty() || assignedPlaneId.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "All fields are required. Please fill in all fields.", "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Validate that From and To are not purely numeric (they should be city names)
+            if (from.matches("\\d+")) {
+                JOptionPane.showMessageDialog(this, "Departure city (From) cannot be purely numeric. Please enter a valid city name.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (to.matches("\\d+")) {
+                JOptionPane.showMessageDialog(this, "Arrival city (To) cannot be purely numeric. Please enter a valid city name.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            try {
+                int flightId = Integer.parseInt(flightNum);
+                int planeId = Integer.parseInt(assignedPlaneId);
+                long durationMinutes = Long.parseLong(duration);
+                
+                // Validate positive numbers
+                if (flightId <= 0 || planeId <= 0 || durationMinutes <= 0) {
+                    JOptionPane.showMessageDialog(this, "Flight Number, Plane ID, and Duration must be positive numbers.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                // Validate plane exists
+                if (!database.getPlanes().containsKey(planeId)) {
+                    JOptionPane.showMessageDialog(this, "Assigned plane does not exist. Please enter a valid Plane ID.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                // Parse date and time
+                LocalDate parsedDate;
+                LocalTime parsedTime;
+                try {
+                    parsedDate = LocalDate.parse(date);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Invalid date format. Please use YYYY-MM-DD (e.g., 2025-01-15).", "Date Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                try {
+                    parsedTime = LocalTime.parse(time);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Invalid time format. Please use HH:MM (e.g., 14:30).", "Time Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                // FIX: Use .getCopy() so this new flight gets its own independent seats
+                Plane assignedPlane = database.getPlanes().get(planeId).getCopy();
+                
+                FlightManager.createFlight(flightId, from, to, parsedDate, parsedTime,
+                        Duration.ofMinutes(durationMinutes), assignedPlane, database);
+                
+                System.out.println("[ADMIN] Create Flight requested:");
+                System.out.println("  Flight Num: " + flightNum);
+                System.out.println("  From: " + from);
+                System.out.println("  To: " + to);
+                System.out.println("  Date: " + date);
+                System.out.println("  Time: " + time);
+                System.out.println("  Duration: " + duration);
+                System.out.println("  Assigned Plane ID: " + assignedPlaneId);
+                
+                JOptionPane.showMessageDialog(this, "Flight created successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
-	            // FIX: Use .getCopy() so this new flight gets its own independent seats
-	            Plane assignedPlane = database.getPlanes().get(Integer.parseInt(assignedPlaneId)).getCopy();
-	            
-	            FlightManager.createFlight(Integer.parseInt(flightNum),from,to,LocalDate.parse(date),LocalTime.parse(time),
-					   Duration.ofMinutes(Long.parseLong(duration)),assignedPlane,database);
-	            
-	            System.out.println("[ADMIN] Create Flight requested:");
-	            System.out.println("  Flight Num: " + flightNum);
-	            System.out.println("  From: " + from);
-	            System.out.println("  To: " + to);
-	            System.out.println("  Date: " + date);
-	            System.out.println("  Time: " + time);
-	            System.out.println("  Duration: " + duration);
-	            System.out.println("  Assigned Plane ID: " + assignedPlaneId);
+                // Clear fields after printing
+                admin_tfFlightNum.setText("");
+                admin_tfFrom.setText("");
+                admin_tfTo.setText("");
+                admin_tfDate.setText("");
+                admin_tfTime.setText("");
+                admin_tfDuration.setText("");
+                admin_tfPlaneAssign.setText("");
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Invalid input format.\nFlight Number, Plane ID, and Duration must be numeric values.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error creating flight: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
 
-	            // Clear fields after printing
-	            admin_tfFlightNum.setText("");
-	            admin_tfFrom.setText("");
-	            admin_tfTo.setText("");
-	            admin_tfDate.setText("");
-	            admin_tfTime.setText("");
-	            admin_tfDuration.setText("");
-	            admin_tfPlaneAssign.setText("");
-	        });
+        panel.add(flightCreatePanel);
 
-	        panel.add(flightCreatePanel);
+		// --- Manage Staff Info (Admin-only)
+		JPanel staffPanel = new JPanel(new GridLayout(0,2,6,6));
+		staffPanel.setBorder(BorderFactory.createTitledBorder("Manage Staff"));
+		staffPanel.setBounds(20, 620, 830, 120);
 
-			// --- Manage Staff Info (Admin-only)
-			JPanel staffPanel = new JPanel(new GridLayout(0,2,6,6));
-			staffPanel.setBorder(BorderFactory.createTitledBorder("Manage Staff"));
-			staffPanel.setBounds(20, 620, 830, 120);
+		JTextField tfStaffId = new JTextField();
+		JTextField tfStaffName = new JTextField();
+		JTextField tfStaffRole = new JTextField();
+		JButton btnLoadStaff = new JButton("Load Staff");
+		JButton btnSaveStaff = new JButton("Save Changes");
 
-			JTextField tfStaffId = new JTextField();
-			JTextField tfStaffName = new JTextField();
-			JTextField tfStaffRole = new JTextField();
-			JButton btnLoadStaff = new JButton("Load Staff");
-			JButton btnSaveStaff = new JButton("Save Changes");
-
-			staffPanel.add(new JLabel("Staff ID:")); staffPanel.add(tfStaffId);
-			staffPanel.add(new JLabel("Name:")); staffPanel.add(tfStaffName);
-			staffPanel.add(new JLabel("Role:")); staffPanel.add(tfStaffRole);
+		staffPanel.add(new JLabel("Staff ID:")); staffPanel.add(tfStaffId);
+		staffPanel.add(new JLabel("Name:")); staffPanel.add(tfStaffName);
+		staffPanel.add(new JLabel("Role:")); staffPanel.add(tfStaffRole);
 			staffPanel.add(btnLoadStaff); staffPanel.add(btnSaveStaff);
 
 			// Load staff data into fields
@@ -825,151 +1032,141 @@ public class AirlineGUI extends JFrame implements Runnable {
 			});
 
 			// Save changes back to database and write CSV
-				btnSaveStaff.addActionListener(e -> {
-					String idStr = tfStaffId.getText().trim();
-					if (idStr.isEmpty()) return;
-					try {
-						long id = Long.parseLong(idStr);
-						String name = tfStaffName.getText().trim();
-						String role = tfStaffRole.getText().trim();
-						
-						if (name.isEmpty() || role.isEmpty()) {
-							JOptionPane.showMessageDialog(this, "Name and role cannot be empty.", "Input Error", JOptionPane.ERROR_MESSAGE);
-							return;
-						}
-
-						// Update Database in Memory
-						Map<Long, Staff> staffs = database.getStaffMembers();
-						if (staffs == null) staffs = new java.util.HashMap<>();
-						
-						Staff s = staffs.get(id);
-						if (s == null) {
-							s = new Staff((int)id, name, role);
-						} else {
-							s.setName(name);
-							s.setRole(role);
-						}
-						staffs.put(id, s);
-						database.setStaffMembers(staffs);
-
-						// --- FIX: Save using FileOp logic ---
-						service_management.FileOp.saveFile("staff.csv", staffs.values(), false, true, "staffId,name,role");
-
-						JOptionPane.showMessageDialog(this, "Staff information saved.", "Saved", JOptionPane.INFORMATION_MESSAGE);
-						
-						// Clear input fields
-						tfStaffId.setText("");
-						tfStaffName.setText("");
-						tfStaffRole.setText("");
-
-					} catch (NumberFormatException ex) {
-						JOptionPane.showMessageDialog(this, "Staff ID must be numeric.", "Input Error", JOptionPane.ERROR_MESSAGE);
-					} catch (Exception ex) {
-						JOptionPane.showMessageDialog(this, "An error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			btnSaveStaff.addActionListener(e -> {
+				String idStr = tfStaffId.getText().trim();
+				if (idStr.isEmpty()) return;
+				try {
+					long id = Long.parseLong(idStr);
+					String name = tfStaffName.getText().trim();
+					String role = tfStaffRole.getText().trim();
+					
+					if (name.isEmpty() || role.isEmpty()) {
+						JOptionPane.showMessageDialog(this, "Name and role cannot be empty.", "Input Error", JOptionPane.ERROR_MESSAGE);
+						return;
 					}
-				});
+					
+					// Validate that name is not purely numeric (should contain letters)
+					if (name.matches("\\d+")) {
+						JOptionPane.showMessageDialog(this, "Staff name cannot be purely numeric. Please enter a valid name.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
 
-			panel.add(staffPanel);
+					// Update Database in Memory
+					Map<Long, Staff> staffs = database.getStaffMembers();
+					if (staffs == null) staffs = new java.util.HashMap<>();
+					
+					Staff s = staffs.get(id);
+					if (s == null) {
+						s = new Staff((int)id, name, role);
+					} else {
+						s.setName(name);
+						s.setRole(role);
+					}
+					staffs.put(id, s);
+					database.setStaffMembers(staffs);
 
-	        // --- New: Update and Delete Flight controls ---
-	        JButton btnUpdateFlight = new JButton("Update Flight (by ID)");
-	        btnUpdateFlight.setBounds(20, 570, 200, 30);
-	        panel.add(btnUpdateFlight);
+					// --- FIX: Save using FileOp logic ---
+					service_management.FileOp.saveFile("staff.csv", staffs.values(), false, true, "staffId,name,role");
 
-	        JButton btnDeleteFlight = new JButton("Delete Flight (by ID)");
-	        btnDeleteFlight.setBounds(240, 570, 200, 30);
-	        panel.add(btnDeleteFlight);
+					JOptionPane.showMessageDialog(this, "Staff information saved.", "Saved", JOptionPane.INFORMATION_MESSAGE);
+					
+					// Clear input fields
+					tfStaffId.setText("");
+					tfStaffName.setText("");
+					tfStaffRole.setText("");
 
-	        btnDeleteFlight.addActionListener(e -> {
-	            String idStr = JOptionPane.showInputDialog(this, "Enter Flight ID to delete:", "Delete Flight", JOptionPane.PLAIN_MESSAGE);
-	            if (idStr == null || idStr.trim().isEmpty()) return;
-	            try {
-	                int flightId = Integer.parseInt(idStr.trim());
-	                boolean ok = FlightManager.deleteFlight(database, flightId);
-	                if (ok) {
-	                    JOptionPane.showMessageDialog(this, "Flight deleted.", "Deleted", JOptionPane.INFORMATION_MESSAGE);
-	                } else {
-	                    JOptionPane.showMessageDialog(this, "Flight not found or could not be deleted.", "Error", JOptionPane.ERROR_MESSAGE);
-	                }
-	                refreshFlightsTable();
-	            } catch (NumberFormatException ex) {
-	                JOptionPane.showMessageDialog(this, "Flight ID must be numeric.", "Input Error", JOptionPane.ERROR_MESSAGE);
-	            }
-	        });
+				} catch (NumberFormatException ex) {
+					JOptionPane.showMessageDialog(this, "Staff ID must be numeric.", "Input Error", JOptionPane.ERROR_MESSAGE);
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(this, "An error occurred: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			});
 
-	        btnUpdateFlight.addActionListener(e -> {
-	            String idStr = JOptionPane.showInputDialog(this, "Enter Flight ID to update:", "Update Flight", JOptionPane.PLAIN_MESSAGE);
-	            if (idStr == null || idStr.trim().isEmpty()) return;
-	            try {
-	                int flightId = Integer.parseInt(idStr.trim());
-	                Flight existing = database.getFlights().get(flightId);
-	                if (existing == null) {
-	                    JOptionPane.showMessageDialog(this, "Flight not found.", "Error", JOptionPane.ERROR_MESSAGE);
-	                    return;
-	                }
+		panel.add(staffPanel);
 
-	                // Build edit panel with existing values
-	                JTextField tfFlightNum = new JTextField(String.valueOf(existing.getFlightNum())); tfFlightNum.setEditable(false);
-	                JTextField tfFrom = new JTextField(existing.getDeparturePlace());
-	                JTextField tfTo = new JTextField(existing.getArrivalPlace());
-	                JTextField tfDate = new JTextField((existing.getDate() != null) ? existing.getDate().toString() : "");
-	                JTextField tfTime = new JTextField((existing.getHour() != null) ? existing.getHour().toString() : "");
-	                JTextField tfDuration = new JTextField((existing.getDuration() != null) ? String.valueOf(existing.getDuration().toMinutes()) : "");
-	                JTextField tfPlaneId = new JTextField((existing.getPlane() != null) ? String.valueOf(existing.getPlane().getPlaneID()) : "");
+        // --- New: Update and Delete Flight controls ---
+        JButton btnUpdateFlight = new JButton("Update Flight (by ID)");
+        btnUpdateFlight.setBounds(20, 570, 200, 30);
+        panel.add(btnUpdateFlight);
 
-	                JPanel editPanel = new JPanel(new GridLayout(0,2));
-	                editPanel.add(new JLabel("Flight Num (readonly):")); editPanel.add(tfFlightNum);
-	                editPanel.add(new JLabel("From:")); editPanel.add(tfFrom);
-	                editPanel.add(new JLabel("To:")); editPanel.add(tfTo);
-	                editPanel.add(new JLabel("Date (YYYY-MM-DD):")); editPanel.add(tfDate);
-	                editPanel.add(new JLabel("Time (HH:MM):")); editPanel.add(tfTime);
-	                editPanel.add(new JLabel("Duration (mins):")); editPanel.add(tfDuration);
-	                editPanel.add(new JLabel("Assign Plane ID:")); editPanel.add(tfPlaneId);
+        JButton btnDeleteFlight = new JButton("Delete Flight (by ID)");
+        btnDeleteFlight.setBounds(240, 570, 200, 30);
+        panel.add(btnDeleteFlight);
 
-	                int r = JOptionPane.showConfirmDialog(this, editPanel, "Edit Flight", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-	                if (r != JOptionPane.OK_OPTION) return;
+        btnDeleteFlight.addActionListener(e -> {
+            String idStr = JOptionPane.showInputDialog(this, "Enter Flight ID to delete:", "Delete Flight", JOptionPane.PLAIN_MESSAGE);
+            if (idStr == null || idStr.trim().isEmpty()) return;
+            try {
+                int flightId = Integer.parseInt(idStr.trim());
+                boolean ok = FlightManager.deleteFlight(database, flightId);
+                if (ok) {
+                    JOptionPane.showMessageDialog(this, "Flight deleted.", "Deleted", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Flight not found or could not be deleted.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                refreshFlightsTable();
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Flight ID must be numeric.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
 
-	                // Parse updated values
-	                String from = tfFrom.getText().trim();
-	                String to = tfTo.getText().trim();
-	                LocalDate date = null;
-	                LocalTime time = null;
-	                Duration duration = null;
-	                Plane plane = null;
+        btnUpdateFlight.addActionListener(e -> {
+            String idStr = JOptionPane.showInputDialog(this, "Enter Flight ID to update:", "Update Flight", JOptionPane.PLAIN_MESSAGE);
+            if (idStr == null || idStr.trim().isEmpty()) return;
+            try {
+                int flightId = Integer.parseInt(idStr.trim());
+                Flight existing = database.getFlights().get(flightId);
+                if (existing == null) {
+                    JOptionPane.showMessageDialog(this, "Flight not found.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-	                try { if (!tfDate.getText().trim().isEmpty()) date = LocalDate.parse(tfDate.getText().trim()); } catch (Exception pe) { JOptionPane.showMessageDialog(this, "Invalid date format.", "Input Error", JOptionPane.ERROR_MESSAGE); return; }
-	                try { if (!tfTime.getText().trim().isEmpty()) time = LocalTime.parse(tfTime.getText().trim()); } catch (Exception pe) { JOptionPane.showMessageDialog(this, "Invalid time format.", "Input Error", JOptionPane.ERROR_MESSAGE); return; }
-	                try { if (!tfDuration.getText().trim().isEmpty()) duration = Duration.ofMinutes(Long.parseLong(tfDuration.getText().trim())); } catch (Exception pe) { JOptionPane.showMessageDialog(this, "Invalid duration.", "Input Error", JOptionPane.ERROR_MESSAGE); return; }
-	                try { if (!tfPlaneId.getText().trim().isEmpty()) plane = database.getPlanes().get(Integer.parseInt(tfPlaneId.getText().trim())); } catch (Exception pe) { JOptionPane.showMessageDialog(this, "Invalid plane ID.", "Input Error", JOptionPane.ERROR_MESSAGE); return; }
+                // Build edit panel with existing values
+                JTextField tfFlightNum = new JTextField(String.valueOf(existing.getFlightNum())); tfFlightNum.setEditable(false);
+                JTextField tfFrom = new JTextField(existing.getDeparturePlace());
+                JTextField tfTo = new JTextField(existing.getArrivalPlace());
+                JTextField tfDate = new JTextField((existing.getDate() != null) ? existing.getDate().toString() : "");
+                JTextField tfTime = new JTextField((existing.getHour() != null) ? existing.getHour().toString() : "");
+                JTextField tfDuration = new JTextField((existing.getDuration() != null) ? String.valueOf(existing.getDuration().toMinutes()) : "");
+                JTextField tfPlaneId = new JTextField((existing.getPlane() != null) ? String.valueOf(existing.getPlane().getPlaneID()) : "");
 
-	                // Create a new Flight object with updated fields (maintain same flight number)
-	                Flight updated = new Flight(existing.getFlightNum(), from, to, date, time, duration, plane);
-	                FlightManager.updateFlight(database, updated);
-	                JOptionPane.showMessageDialog(this, "Flight updated.", "Updated", JOptionPane.INFORMATION_MESSAGE);
-	                refreshFlightsTable();
+                JPanel editPanel = new JPanel(new GridLayout(0,2));
+                editPanel.add(new JLabel("Flight Num (readonly):")); editPanel.add(tfFlightNum);
+                editPanel.add(new JLabel("From:")); editPanel.add(tfFrom);
+                editPanel.add(new JLabel("To:")); editPanel.add(tfTo);
+                editPanel.add(new JLabel("Date (YYYY-MM-DD):")); editPanel.add(tfDate);
+                editPanel.add(new JLabel("Time (HH:MM):")); editPanel.add(tfTime);
+                editPanel.add(new JLabel("Duration (mins):")); editPanel.add(tfDuration);
+                editPanel.add(new JLabel("Assign Plane ID:")); editPanel.add(tfPlaneId);
 
-	            } catch (NumberFormatException ex) {
-	                JOptionPane.showMessageDialog(this, "Flight ID must be numeric.", "Input Error", JOptionPane.ERROR_MESSAGE);
-	            }
-	        });
+                int r = JOptionPane.showConfirmDialog(this, editPanel, "Edit Flight", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+                if (r != JOptionPane.OK_OPTION) return;
+
+                // Parse updated values
+                String from = tfFrom.getText().trim();
+                String to = tfTo.getText().trim();
+                LocalDate date = null;
+                LocalTime time = null;
+                Duration duration = null;
+                Plane plane = null;
+
+                try { if (!tfDate.getText().trim().isEmpty()) date = LocalDate.parse(tfDate.getText().trim()); } catch (Exception pe) { JOptionPane.showMessageDialog(this, "Invalid date format.", "Input Error", JOptionPane.ERROR_MESSAGE); return; }
+                try { if (!tfTime.getText().trim().isEmpty()) time = LocalTime.parse(tfTime.getText().trim()); } catch (Exception pe) { JOptionPane.showMessageDialog(this, "Invalid time format.", "Input Error", JOptionPane.ERROR_MESSAGE); return; }
+                try { if (!tfDuration.getText().trim().isEmpty()) duration = Duration.ofMinutes(Long.parseLong(tfDuration.getText().trim())); } catch (Exception pe) { JOptionPane.showMessageDialog(this, "Invalid duration.", "Input Error", JOptionPane.ERROR_MESSAGE); return; }
+                try { if (!tfPlaneId.getText().trim().isEmpty()) plane = database.getPlanes().get(Integer.parseInt(tfPlaneId.getText().trim())); } catch (Exception pe) { JOptionPane.showMessageDialog(this, "Invalid plane ID.", "Input Error", JOptionPane.ERROR_MESSAGE); return; }
+
+                // Create a new Flight object with updated fields (maintain same flight number)
+                Flight updated = new Flight(existing.getFlightNum(), from, to, date, time, duration, plane);
+                FlightManager.updateFlight(database, updated);
+                JOptionPane.showMessageDialog(this, "Flight updated.", "Updated", JOptionPane.INFORMATION_MESSAGE);
+                refreshFlightsTable();
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Flight ID must be numeric.", "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
 
 	        return panel;
-	    }
-
-	    // Helper to clear admin creation fields from other actions
-	    private void clearAdminCreationFields() {
-	        if (admin_tfPlaneId != null) admin_tfPlaneId.setText("");
-	        if (admin_tfModel != null) admin_tfModel.setText("");
-	        if (admin_tfCapacity != null) admin_tfCapacity.setText("");
-	        if (admin_tfrows != null) admin_tfrows.setText("");
-
-	        if (admin_tfFlightNum != null) admin_tfFlightNum.setText("");
-	        if (admin_tfFrom != null) admin_tfFrom.setText("");
-	        if (admin_tfTo != null) admin_tfTo.setText("");
-	        if (admin_tfDate != null) admin_tfDate.setText("");
-	        if (admin_tfTime != null) admin_tfTime.setText("");
-	        if (admin_tfDuration != null) admin_tfDuration.setText("");
-	        if (admin_tfPlaneAssign != null) admin_tfPlaneAssign.setText("");
 	    }
 
 	    // Seat selection dialog returns selected seat string or null if cancelled

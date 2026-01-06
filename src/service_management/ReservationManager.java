@@ -1,9 +1,11 @@
 package service_management;
 
-import java.time.LocalDate;
 import flightManagment.Flight;
 import flightManagment.Plane;
 import flightManagment.Seat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import reservation_ticketing.Passenger;
 import reservation_ticketing.Reservation;
 import reservation_ticketing.Ticket;
@@ -75,5 +77,99 @@ public class ReservationManager {
 		FileOp.saveFile("src/tickets.csv", database.getTickets().values(), false, true,
 						"ticketNum,reservationCode,price,baggaeWeight");
 		return ticket;
+	}
+
+	/**
+	 * Search reservations by reservation ID
+	 */
+	public static List<Reservation> searchByReservationId(String reservationId, Database database) {
+		List<Reservation> results = new ArrayList<>();
+		if (database.getReservations() != null) {
+			for (Reservation r : database.getReservations().values()) {
+				if (r.getReservationCode() != null && r.getReservationCode().toLowerCase().contains(reservationId.toLowerCase())) {
+					results.add(r);
+				}
+			}
+		}
+		return results;
+	}
+
+	/**
+	 * Search reservations by passenger name (first name or surname)
+	 */
+	public static List<Reservation> searchByPassengerName(String name, Database database) {
+		List<Reservation> results = new ArrayList<>();
+		if (database.getReservations() != null) {
+			for (Reservation r : database.getReservations().values()) {
+				if (r.getPassenger() != null) {
+					String fullName = r.getPassenger().getName() + " " + r.getPassenger().getSurname();
+					if (fullName.toLowerCase().contains(name.toLowerCase())) {
+						results.add(r);
+					}
+				}
+			}
+		}
+		return results;
+	}
+
+	/**
+	 * Search reservations by date of reservation
+	 */
+	public static List<Reservation> searchByDate(LocalDate date, Database database) {
+		List<Reservation> results = new ArrayList<>();
+		if (database.getReservations() != null) {
+			for (Reservation r : database.getReservations().values()) {
+				if (r.getDateOfReservation() != null && r.getDateOfReservation().equals(date)) {
+					results.add(r);
+				}
+			}
+		}
+		return results;
+	}
+
+	/**
+	 * Generic search that filters reservations by all criteria at once
+	 * Any field can be null to skip filtering on that field
+	 */
+	public static List<Reservation> searchReservations(String reservationId, String passengerName, LocalDate date, Database database) {
+		List<Reservation> results = new ArrayList<>();
+		
+		if (database.getReservations() != null) {
+			for (Reservation r : database.getReservations().values()) {
+				boolean matches = true;
+				
+				// Check reservation ID
+				if (reservationId != null && !reservationId.trim().isEmpty()) {
+					if (r.getReservationCode() == null || !r.getReservationCode().toLowerCase().contains(reservationId.toLowerCase())) {
+						matches = false;
+					}
+				}
+				
+				// Check passenger name
+				if (matches && passengerName != null && !passengerName.trim().isEmpty()) {
+					if (r.getPassenger() == null) {
+						matches = false;
+					} else {
+						String fullName = r.getPassenger().getName() + " " + r.getPassenger().getSurname();
+						if (!fullName.toLowerCase().contains(passengerName.toLowerCase())) {
+							matches = false;
+						}
+					}
+				}
+				
+				// Check date
+				if (matches && date != null) {
+					if (r.getDateOfReservation() == null || !r.getDateOfReservation().equals(date)) {
+						matches = false;
+					}
+				}
+				
+				if (matches) {
+					results.add(r);
+				}
+			}
+		}
+		
+		return results;
 	}
 }

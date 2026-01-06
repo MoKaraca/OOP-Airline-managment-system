@@ -43,7 +43,7 @@ public class SeatManager {
         if (!seat.isReservedStatus()) {
             // Mark it reserved (unsafe)
         	try {
-        	    Thread.sleep(20); // Deliberate delay to provoke race conditions
+        	    Thread.sleep(2000); // Deliberate delay to provoke race conditions
         	} catch (InterruptedException e) {}
 
 			seat.setReservedStatusUnsafe(true, flight.getPlane());
@@ -70,7 +70,7 @@ public class SeatManager {
 		    Seat seat = availableSeats.get(random.nextInt(availableSeats.size()));
 
             if (!seat.isReservedStatus()) {
-                // Mark it reserved (safe)
+                // Mark it reserved (safe)S
             	try {
             	    Thread.sleep(2);
             	} catch (InterruptedException e) {}

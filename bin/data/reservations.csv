@@ -1,4 +1,5 @@
-reservationId,flightNum,passengerId,seatNumber,reservationDate
-R97174,1019,24011962,G4,2026-01-05
+reservationCode,flightNum,passengerId,seatNum,dateOfReservation
+R85935,1013,240,F3,2026-01-06
 R72580,1015,123,I4,2025-12-31
 R78586,1014,24011962,A1,2025-12-31
+R99557,1013,24011962,G3,2026-01-06
