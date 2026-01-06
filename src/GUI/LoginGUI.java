@@ -75,6 +75,12 @@ public class LoginGUI extends JFrame {
         // open main GUI without admin panel (pass the new passenger as logged-in user)
         AirlineGUI gui = new AirlineGUI(database, false, p);
         gui.setVisible(true);
+        
+        // Start the flight expiration checker thread
+        Thread flightExpirationThread = new Thread(gui);
+        flightExpirationThread.setDaemon(false);
+        flightExpirationThread.start();
+        
         this.dispose();
     }
 
@@ -87,6 +93,12 @@ public class LoginGUI extends JFrame {
                 Passenger p = database.getPassengers().get(id);
                 AirlineGUI gui = new AirlineGUI(database, false, p);
                 gui.setVisible(true);
+                
+                // Start the flight expiration checker thread
+                Thread flightExpirationThread = new Thread(gui);
+                flightExpirationThread.setDaemon(false);
+                flightExpirationThread.start();
+                
                 this.dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "Passenger ID not found. Please sign up first.", "Login Failed", JOptionPane.ERROR_MESSAGE);
@@ -114,6 +126,12 @@ public class LoginGUI extends JFrame {
             // successful admin login
             AirlineGUI gui = new AirlineGUI(database, true, null);
             gui.setVisible(true);
+            
+            // Start the flight expiration checker thread
+            Thread flightExpirationThread = new Thread(gui);
+            flightExpirationThread.setDaemon(false);
+            flightExpirationThread.start();
+            
             this.dispose();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Staff ID must be numeric.", "Input Error", JOptionPane.ERROR_MESSAGE);

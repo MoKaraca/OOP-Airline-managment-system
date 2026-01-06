@@ -1,6 +1,6 @@
 package flightManagment;
 import java.time.*;
-public class route extends Flight{
+public class route extends Flight  {
 	private LocalDateTime departure;
 	private LocalDateTime arrival;
 	

@@ -2,7 +2,7 @@ package reservation_ticketing;
 import java.util.*;
 public class Baggage {
 	private double weight;
-	Ticket ticket;
+	private Ticket ticket;
 		public Baggage(double weight,Ticket ticket) {
 			setWeight(weight);
 			this.ticket = ticket;
