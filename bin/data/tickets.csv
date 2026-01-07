@@ -1,4 +1,2 @@
-ticketNum,reservationCode,price,baggaeWeight
-71633,R99557,112.6880206083935,39
-50053,R85935,94.6880206083935,33
+ticketId,reservationId,price,status
 30031,R72580,364.6880206083935,123

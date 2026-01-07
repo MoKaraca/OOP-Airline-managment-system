@@ -1,4 +1,5 @@
 flightNum,departure,arrival,date,time,duration,planeId
+2004,s1231,s23,2026-12-25,12:44,PT2H,1
 1013,Ankara,Antalya,2026-01-07,12:00,PT1H15M,3
 1014,234,242,2026-12-11,12:11,PT2H,1
 1015,Antalya,Ankara,2026-01-08,16:00,PT1H20M,4
@@ -6,3 +7,4 @@ flightNum,departure,arrival,date,time,duration,planeId
 1017,Bursa,Istanbul,2026-01-09,08:00,PT45M,2
 1018,Ankara,Izmir,2026-01-09,09:30,PT1H10M,3
 1019,Izmir,Antalya,2026-01-10,11:00,PT1H,4
+1020,Antalya,Istanbul,2026-01-10,13:00,PT1H20M,5
