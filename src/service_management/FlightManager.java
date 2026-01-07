@@ -34,7 +34,7 @@ public class FlightManager {
 	public static Flight createFlight(int flightNum, String departurePlace, String arrivalPlace, LocalDate date, LocalTime hour, Duration duration, Plane plane, Database db) {
 		Flight flight = new Flight(flightNum, departurePlace, arrivalPlace, date, hour, duration, plane);
 		db.getFlights().put(flightNum, flight);
-		FileOp.saveFile("src/flights.csv", db.getFlights().values(), false, true,
+		FileOp.saveFile("flights.csv", db.getFlights().values(), false, true,
 				        "flightNum,departure,arrival,date,time,duration,planeId");
 		return flight;
 	}
@@ -42,7 +42,7 @@ public class FlightManager {
 	public static Plane createPlane(int planeId, String model, int capacity, int rows, Database db) {
 		Plane plane = new Plane(planeId, model, capacity, rows);
 		db.getPlanes().put(planeId, plane);
-		FileOp.saveFile("src/planes.csv", db.getPlanes().values(), false, true,
+		FileOp.saveFile("planes.csv", db.getPlanes().values(), false, true,
 				        "planeId,model,capacity,rows");
 		return plane;
 	}
@@ -50,7 +50,7 @@ public class FlightManager {
 	public static Flight updateFlight(Database db, Flight flight) {
 		if (db.getFlights().containsKey(flight.getFlightNum())) {
 			db.getFlights().put(flight.getFlightNum(), flight);
-			FileOp.saveFile("src/flights.csv", db.getFlights().values(), false, true,
+			FileOp.saveFile("flights.csv", db.getFlights().values(), false, true,
 					        "flightNum,departure,arrival,date,time,duration,planeId");
 		}
 		return flight;
@@ -61,7 +61,7 @@ public class FlightManager {
 			return false;
 		}
 		db.getFlights().remove(flightNum);
-		FileOp.saveFile("src/flights.csv", db.getFlights().values(), false, true,
+		FileOp.saveFile("flights.csv", db.getFlights().values(), false, true,
 				        "flightNum,departure,arrival,date,time,duration,planeId");
 		return true;
 	}
