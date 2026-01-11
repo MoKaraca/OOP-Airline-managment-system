@@ -1,7 +1,11 @@
 planeId,model,capacity,rows
-1,Boeing737,180,30
-2,AirbusA320,160,28
-3,Boeing738,190,32
-4,AirbusA321,200,34
-500,boeing,180,6
-5,Embraer190,100,20
+1,Boeing 737,180,30
+2,Airbus A320,160,28
+3,Boeing 738,190,32
+4,Airbus A321,200,34
+5,Embraer 190,100,20
+6,Boeing 777,300,50
+7,Airbus A350,350,55
+8,Boeing 787,250,40
+9,Airbus A330,280,45
+10,Bombardier CRJ900,90,18

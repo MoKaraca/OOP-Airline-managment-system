@@ -1,0 +1,11 @@
+flightNum,departure,arrival,date,time,duration,planeId
+1000,Istanbul,Ankara,2026-04-01,12:00,PT2H,6
+1001,Ankara,Izmir,2026-04-03,12:00,PT2H,1
+1002,Izmir,Antalya,2026-04-05,12:00,PT2H,9
+1003,Antalya,London,2026-04-07,12:00,PT2H,6
+1004,London,Paris,2026-04-09,12:00,PT2H,9
+1005,Paris,New York,2026-04-11,12:00,PT2H,8
+1006,New York,Tokyo,2026-04-13,12:00,PT2H,7
+1007,Tokyo,Berlin,2026-04-15,12:00,PT2H,3
+1008,Berlin,Rome,2026-04-17,12:00,PT2H,8
+1009,Rome,Istanbul,2026-04-19,12:00,PT2H,10
